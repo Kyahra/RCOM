@@ -1,3 +1,12 @@
+/*Non-Canonical Input Processing*/
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <stdio.h>
+
+#define BAUDRATE B38400
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
@@ -84,17 +93,14 @@ int main(int argc, char** argv)
     while(!STOP){
     read(fd,&c,1);
  
- 
- 
    printf("char = %04x\n", c);
  
     printf("state = %d\n", state);
  
- 
- 
+
     switch(state){
     case 0:
-      if(&c == FLAG)
+      if(c == FLAG)
     state =1;      
       break;
     case 1:

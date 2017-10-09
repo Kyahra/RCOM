@@ -29,11 +29,7 @@ int main(int argc, char** argv)
     char buf2[255];
     int i, sum = 0, speed = 0;
  
-    SET[0]=FLAG;
-    SET[1]=A;
-    SET[2]=C_SET;
-    SET[3]=SET[1]^SET[2];
-    SET[4]=FLAG;
+   
  
     if ( (argc < 2) ||
          ((strcmp("/dev/ttyS0", argv[1])!=0) &&
@@ -85,13 +81,17 @@ int main(int argc, char** argv)
     }
  
     printf("New termios structure set\n");
+
+    SET[0]=FLAG;
+    SET[1]=A;
+    SET[2]=C_SET;
+    SET[3]=SET[1]^SET[2];
+    SET[4]=FLAG;
  
     int h= write(fd,SET,5);
  
  
- 
- 
- 
+
  
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
