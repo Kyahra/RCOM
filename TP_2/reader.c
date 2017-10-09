@@ -101,8 +101,9 @@ int main(int argc, char** argv)
     switch(state){
     case 0:
       if(c == FLAG)
-    state =1;      
+   	 state =1;      
       break;
+
     case 1:
       if(c!= FLAG)
     state =0;
@@ -111,6 +112,7 @@ int main(int argc, char** argv)
     state = 2;
       break;
     case 2:
+
       if(c!= FLAG)
     state =0;
      
@@ -121,6 +123,7 @@ int main(int argc, char** argv)
     state =3;
       break;
     case 3:
+
       if(c!= FLAG)
     state =0;
  
@@ -139,11 +142,12 @@ int main(int argc, char** argv)
     STOP = TRUE;
       break;
      
+     }
     }
- 
- 
- 
-    }
+
+    int h= write(fd,UA,5);
+
+
    
    
  
