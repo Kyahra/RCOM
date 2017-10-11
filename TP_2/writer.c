@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
@@ -17,24 +18,89 @@
 #define C_SET 0x03
 #define C_UA 0x07
 
-
-
-volatile int STOP=FALSE;
-
-int main(int argc, char** argv)
-{
+int llopen(int fd) {
+    bool STOP = false;
     unsigned char SET[5];
-    int fd,c, res;
-    struct termios oldtio,newtio;
-    char buf[255];
-    char buf2[255];
-    int i, sum = 0, speed = 0;
+    unsigned char c;
+    int state=0;
+
+   printf("llopen: sending SET\n");
 
     SET[0]=FLAG;
     SET[1]=A;
     SET[2]=C_SET;
     SET[3]=SET[1]^SET[2];
     SET[4]=FLAG;
+
+
+    if(write(fd,SET,5) != 5){
+        printf("llopen: write error\n");
+        return -1;
+    }
+
+    printf("llopen: receiving UA\n");
+
+    while ((read(fd,&c,1) != -1) && STOP==false) {
+
+      printf("char = %04x\n", c);
+      printf("state = %d\n", state);
+
+
+      switch (state) {
+          case 0:
+            if(c == FLAG)
+              state =1;
+          break;
+
+          case 1:
+            if(c!= FLAG)
+              state =0;
+
+            if(c == A)
+              state = 2;
+            break;
+
+          case 2:
+            if(c!= FLAG)
+              state =0;
+            else
+              state =1;
+
+            if(c == C_UA)
+              state =3;
+            break;
+
+          case 3:
+            if(c!= FLAG)
+              state =0;
+
+            if( c== FLAG)
+              state =1;
+
+            if( c == (C_UA^A))
+              state = 4;
+            break;
+
+          case 4:
+            if(c != FLAG)
+              state =0;
+
+            if(c== FLAG)
+              STOP = true;
+            break;
+
+          }
+        }
+
+    printf("llopen: success\n");
+    return 0;
+}
+
+
+int main(int argc, char** argv){
+    int fd;
+    struct termios oldtio,newtio;
+
 
     if ( (argc < 2) ||
          ((strcmp("/dev/ttyS0", argv[1])!=0) &&
@@ -48,7 +114,6 @@ int main(int argc, char** argv)
     Open serial port device for reading and writing and not as controlling tty
     because we don't want to get killed if linenoise sends CTRL-C.
   */
-
 
     fd = open(argv[1], O_RDWR | O_NOCTTY );
     if (fd <0) {perror(argv[1]); exit(-1); }
@@ -76,69 +141,10 @@ int main(int argc, char** argv)
     leitura do(s) pr�ximo(s) caracter(es)
   */
 
-  printf("New termios structure set\n");
+    printf("New termios structure set\n");
 
-  int h= write(fd,SET,5);
-  unsigned char c;
-    int state;
-    state =0;
-
-    while(!STOP){
-    read(fd,&c,1);
-
-   printf("char = %04x\n", c);
-
-    printf("state = %d\n", state);
-
-
-    switch(state){
-    case 0:
-      if(c == FLAG)
-    state =1;
-      break;
-    case 1:
-      if(c!= FLAG)
-    state =0;
-
-      if(c ==A)
-    state = 2;
-      break;
-    case 2:
-      if(c!= FLAG)
-    state =0;
-
-      if(c == FLAG)
-    state =1;
-
-      if(c == C_UA)
-    state =3;
-      break;
-    case 3:
-      if(c!= FLAG)
-    state =0;
-
-      if( c== FLAG)
-    state =1;
-
-      if( c == (C_UA^A))
-    state = 4;
-      break;
-
-    case 4:
-      if(c != FLAG)
-    state =0;
-
-      if(c== FLAG)
-    STOP = TRUE;
-      break;
-
-    }
-
-
-
-    }
-
-
+    if( llopen(fd) !=0)
+      printf("llopen: failed\n");
 
 
     tcflush(fd, TCIOFLUSH);
@@ -149,20 +155,10 @@ int main(int argc, char** argv)
     }
 
 
-
-
-
-
-
-
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
       exit(-1);
     }
-
-
-
-
 
     close(fd);
     return 0;
