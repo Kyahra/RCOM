@@ -39,8 +39,13 @@ ua_msg[4] = FLAG;
     int state;
     state =0;
 
-while(!STOP &&  (read(fd,&c,1) != -1)){
+while(!STOP ){
 
+	
+	if (read(fd,&c,1) == -1){
+			printf("ERROR in read()");
+		return 1;
+}
    printf("char = %04x\n", c);
    printf("state = %d\n", state);
 
