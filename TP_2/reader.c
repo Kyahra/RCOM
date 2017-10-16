@@ -18,32 +18,27 @@ volatile int STOP=FALSE;
 
 
 int llopen(int fd) {
-int setMsgSize = 5;
-char ua_msg[setMsgSize];
+
+  char UA[5];
+  unsigned char c;
+  int state =0;
 
 
-ua_msg[0] = FLAG;
-ua_msg[1] = A;
-ua_msg[2] = C_UA;
-ua_msg[3] = A^C_UA;
-ua_msg[4] = FLAG;
+  UA[0] = FLAG;
+  UA[1] = A;
+  UA[2] = C_UA;
+  UA[3] = A^C_UA;
+  UA[4] = FLAG;
 
 
-
-
-
-
-    unsigned char c;
-    int state;
-    state =0;
 
 while(!STOP ){
 
+  	if (read(fd,&c,1) == -1){
+  			printf("ERROR in read()");
+  		return 1;
+   }
 
-	if (read(fd,&c,1) == -1){
-			printf("ERROR in read()");
-		return 1;
-}
    printf("char = %04x\n", c);
    printf("state = %d\n", state);
 

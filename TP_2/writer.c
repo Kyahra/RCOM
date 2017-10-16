@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
@@ -20,10 +21,12 @@
 #define C_UA 0x07
 
 bool timedOut=false;
+int count=1;
 
 void alarmHandler(int sig){
  timedOut=true;
  printf("function timed out\n");
+ count ++;
 }
 
 
@@ -33,16 +36,18 @@ int llopen(int fd) {
    unsigned char c;
    int state=0;
 
-
-
    SET[0]=FLAG;
    SET[1]=A;
    SET[2]=C_SET;
    SET[3]=SET[1]^SET[2];
    SET[4]=FLAG;
 
+   signal(SIGALRM, alarmHandler);
+
+
+
+
    do{
-       timedOut=false;
 
        printf("llopen: sending SET\n");
 
@@ -50,16 +55,23 @@ int llopen(int fd) {
            printf("llopen: write error\n");
            return -1;
        }
+       timedOut = false;
 
        alarm(3);
+
 
        printf("llopen: receiving UA\n");
 
        while ((!STOP && !timedOut)) {
 
-       printf("yo1%d\n",fd);
-       int h=read(fd,&c,1);
-       printf("yo2%d\n",h);
+       if(read(fd,&c,1)==-1){
+         printf("erro no read");
+       }
+
+
+
+       printf("state: %d\n",state);
+       printf("char: %04x\n",c);
 
          switch (state) {
              case 0:
@@ -101,16 +113,19 @@ int llopen(int fd) {
 
                if(c== FLAG){
                  STOP = TRUE;
+
                  printf("llopen(): received UA\n");
+
                }
                break;
              default:
                break;
 
              }
+             printf("puta\n");
            }
          }
-         while(timedOut);
+      while(timedOut);
 
    printf("llopen: success\n");
    return 0;
@@ -151,29 +166,13 @@ int main(int argc, char** argv){
    /* set input mode (non-canonical, no echo,...) */
    newtio.c_lflag = 0;
 
-   newtio.c_cc[VTIME]    = 10;   /* inter-character timer unused */
+   newtio.c_cc[VTIME]    = 5;   /* inter-character timer unused */
    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
-
-
 
  /*
    VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a
    leitura do(s) pr�ximo(s) caracter(es)
  */
- unsigned char c;
- printf("yo1%d\n",fd);
- int h=read(fd,&c,1);
- printf("yo2%d\n",h);
-
- signal(SIGALRM,alarmHandler);
-
-   printf("New termios structure set\n");
-
-
-
-   if( llopen(fd) !=0)
-     printf("llopen: failed\n");
-
 
    tcflush(fd, TCIOFLUSH);
 
@@ -182,6 +181,10 @@ int main(int argc, char** argv){
      exit(-1);
    }
 
+   printf("New termios structure set\n");
+
+   if( llopen(fd) !=0)
+     printf("llopen: failed\n");
 
    if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
      perror("tcsetattr");
