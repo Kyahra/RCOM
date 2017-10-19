@@ -33,7 +33,17 @@ int llwrite(int fd, char* buffer, int length){
   //ou exclusivo do d1 a dn
   frame[length +4]=BCC2(buffer, length);
   frame[length + 5] = FLAG;
+frameSize = stuff_frame(frame, length + 6);
+ }
 
+ int shift_right(unsigned char *frame, int initial_pos, int frame_size){
+
+      for(; initial_pos<= frame_size-1;initial_pos--){
+        frame[frame_size+1] = frame[frame_size];
+      }
+
+
+      return 0;
  }
 
  int stuff_frame(unsigned char *frame, int frame_size){
@@ -44,14 +54,14 @@ int llwrite(int fd, char* buffer, int length){
        if(frame[i]== FLAG){
         frame[i]=ESC;
         i++;
-        //TODO:shift da trama
+        shift_right(frame,i,frame_size);
         frame_size++;
         frame[i]=FLAG_HIDE_BYTE;
       }
 
         if(frame[i]==ESC){
           i++;
-          //TODO:shift da trama
+          shift_right(frame,i,frame_size);
           frame_size++;
           frame[i] = ESC_HIDE_BYTE;
         }
