@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <strings.h>
+#include <string.h>
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
@@ -122,10 +124,9 @@ int llopen(int fd) {
                break;
 
              }
-             printf("puta\n");
            }
          }
-      while(timedOut);
+      while(timedOut && count<=3);
 
    printf("llopen: success\n");
    return 0;
