@@ -36,11 +36,9 @@ while(!STOP ){
 
   	if (read(fd,&c,1) == -1){
   			printf("ERROR in read()");
-  		return 1;
+  		  return 1;
    }
 
-   printf("char = %04x\n", c);
-   printf("state = %d\n", state);
 
     switch(state){
     case 0:
@@ -80,10 +78,10 @@ while(!STOP ){
     }
   }
 
-printf("sending UA\n");
-write(fd, ua_msg, setMsgSize);
-printf("llopen Success\n");
-return 0;
+  printf("sending UA\n");
+  write(fd, UA, 5);
+  printf("llopen Success\n");
+  return 0;
 }
 
 int main(int argc, char** argv)
@@ -142,10 +140,6 @@ int main(int argc, char** argv)
     }
 
     printf("New termios structure set\n");
-
-
-      llopen(fd);
-
 
 
     tcsetattr(fd,TCSANOW,&oldtio);
