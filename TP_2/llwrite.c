@@ -2,9 +2,9 @@
 #define ESC 0x7D
 #define ESC_HIDE_BYTE 0x5D
 #define FLAG_HIDE_BYTE 0x5E
-#define RR0 0x05
-#define RR1 0x85
-#define REJ 0x01
+#define C_RR0 0x05
+#define C_RR1 0x85
+#define C_REJ 0x01
 
 unsigned char frame[255];
 int frame_size = 0;
@@ -21,7 +21,7 @@ unsigned char BCC2(unsigned char *frame, unsigned int length) {
   return BCC;
 }
 
-int shift_right(unsigned char *frame, int initial_pos, int frame_size){
+int shift_right(unsigned char *frame, int initialeminem_pos, int frame_size){
 
      for(; initial_pos<= frame_size-1;initial_pos--){
        frame[frame_size+1] = frame[frame_size];
@@ -55,15 +55,14 @@ int stuff_frame(unsigned char *frame, int frame_size){
 
      }
 }
-int llwrite(int fd, char* buffer, int length){
 
-  int sequence= buffer[length-1];
-  int rejections_number=0;
-  char temp[5];
+int create_I_frame(char * buffer, int length){
 
+  static char c = 1;
+  c = !c;
   frame[0]=FLAG;
   frame[1]=A;
-  frame[2]=sequence;
+  frame[2]=c << 6;;
   frame[3]=frame[1]^frame[2];
 
   for(int i=0; i<length-1;i++){
@@ -75,18 +74,31 @@ int llwrite(int fd, char* buffer, int length){
   frame[length + 5] = FLAG;
   frame_size = stuff_frame(frame, length + 6);
 
+  return 0;
+
+}
+
+
+
+int llwrite(int fd, char* buffer, int length){
+
+  int rejections_number=0;
+  char temp[5];
+  bool STOP = false;
+  unsigned char c;
+
+  create_I_frame(buffer,length);
 
   int i=0;
 
-    do {
-      //TODO put the 3 seconds as a MACRO
-      i++;
-      alarm(3);
-      write(fd,frame,frame_size);
-      read(fd,temp,5);
-      alarm(3);
-       }
-      while(temp[2] ==REJ)
+  do{
+
+
+
+  }
+while(timedOut && count<=3);
+
+
 
 
  }
