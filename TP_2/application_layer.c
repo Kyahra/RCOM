@@ -3,6 +3,7 @@
 
 
 void set_connection(char * port, char * stat){
+  
   if(strcmp(port,COM1_PORT)==0)
      app_layer.port = COM1;
 
@@ -25,6 +26,8 @@ void set_connection(char * port, char * stat){
       printf("app_layer - set_connection(): invalid file descriptor\n");
       exit(-1);
   }
+
+  llclose(app_layer.fileDescriptor);
 
 
 

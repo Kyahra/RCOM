@@ -1,5 +1,13 @@
 #include "data_link.h"
 
+bool timedOut=false;
+int count=0;
+
+void alarmHandler(int sig){
+ timedOut=true;
+ printf("function timed out\n");
+ count ++;
+}
 
 void init_link_layer(int timeout,int numTransmissions, int baudRate){
 
@@ -38,6 +46,12 @@ int llopen(int port,status stat){
     return -1;
   }
 
+  if(stat == TRANSMITTER)
+    llopen_transmitter();
+
+  if(stat == RECEIVER)
+    llopen_receiver();
+
 
 
   return fd;
@@ -52,6 +66,8 @@ int set_terminus(int fd){
      perror("tcgetattr");
      exit(-1);
    }
+
+   link_layer.portSettings = oldtio;
 
    bzero(&newtio, sizeof(newtio));
    newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
@@ -70,6 +86,31 @@ int set_terminus(int fd){
      exit(-1);
    }
 
+   printf("New termios structure set\n");
+
    return 0;
+
+}
+
+int llclose(int fd){
+
+
+    if ( tcsetattr(fd,TCSANOW,&link_layer.portSettings) == -1) {
+      perror("tcsetattr");
+      exit(-1);
+    }
+
+    close(fd);
+
+    return 0;
+
+}
+
+
+int llopen_transmitter(){
+
+  signal(SIGALRM, alarmHandler);
+
+  return 0;
 
 }
