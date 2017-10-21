@@ -9,10 +9,10 @@
 typedef struct  {
   int port;
   int fileDescriptor;/*Descritor correspondente à porta série*/
-  status stat;/*TRANSMITTER | RECEIVER*/
+  status mode;/*TRANSMITTER | RECEIVER*/
 }applicationLayer;
 
 applicationLayer app_layer;
 
 
-void set_connection(char * port, char * stat);
+void set_connection(char * port, char * mode);
