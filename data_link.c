@@ -1,5 +1,8 @@
 #include "data_link.h"
 
+char SET[5] = {FLAG, A, C_SET, A ^ C_SET, FLAG};
+char UA[5] = {FLAG, A, C_UA, A ^ C_UA, FLAG};
+
 bool timedOut=false;
 int count=0;
 
@@ -46,13 +49,12 @@ int llopen(int port,status stat){
   }
 
   if(stat == TRANSMITTER)
-    if(llopen_transmitter(fd) <0){
-      printf("data_link - llopen: failed");
-    }
+    if(llopen_transmitter(fd) <0)
+      return -1;
 
   if(stat == RECEIVER)
-    llopen_receiver(fd);
-
+    if(llopen_receiver(fd) < 0)
+      return -1;
 
 
   return fd;
@@ -77,7 +79,7 @@ int set_terminus(int fd){
    newtio.c_lflag = 0;
 
 
-   if(link_layer.status == TRANSMITTER)
+   if(link_layer.stat == TRANSMITTER)
    newtio.c_cc[VTIME]    = 5;   /* inter-character timer unused */
    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
@@ -96,6 +98,132 @@ int set_terminus(int fd){
 
 }
 
+int llopen_transmitter(int fd){
+
+
+  unsigned char c;
+  int state=0;
+  bool STOP = false;
+
+  signal(SIGALRM, alarmHandler);
+
+  do{
+
+      printf("llopen: sending SET\n");
+
+      if(write(fd,SET,5) != 5){
+          printf("data_link - llopen: error writting SET\n");
+          exit(-1);
+      }
+
+      timedOut = false;
+      alarm(link_layer.timeout);
+
+
+      while ((!STOP && !timedOut)) {
+
+      if(read(fd,&c,1)==-1){
+        printf("data_link - llopen: read error\n");
+        exit(-1);
+      }
+
+      STOP = updateState(c,&state,UA);
+
+      }
+
+        }while(timedOut && count<link_layer.numTransmissions);
+
+        if(count ==link_layer.numTransmissions)
+          return -1;
+        else
+          return 0;
+
+}
+
+int llopen_receiver(int fd){
+
+    unsigned char c;
+    int state =0;
+    bool STOP = false;
+
+
+  while(!STOP ){
+
+    	if (read(fd,&c,1) == -1){
+    			printf("data_link - llopen: read error\n");
+    		return 1;
+     }
+
+     STOP = updateState(c,&state,UA);
+
+    }
+
+    if(write(fd,UA,5) != 5){
+        printf("data_link - llopen: error writting UA\n");
+        exit(-1);
+    }
+
+
+  return 0;
+
+}
+
+bool updateState(unsigned char c,int* state,char * msg){
+
+  switch (*state) {
+      case 0:
+        if(c == msg[0])
+          *state=1;
+
+          break;
+
+      case 1:
+        if(c!= msg[0])
+          *state=0;
+        if(c == msg[1])
+          *state=2;
+
+        break;
+
+      case 2:
+        if(c!= msg[0])
+          *state =0;
+        else
+          *state =1;
+        if(c == msg[2])
+          *state =3;
+
+        break;
+
+      case 3:
+        if(c!= msg[0])
+          *state =0;
+        if( c== msg[0])
+          *state =1;
+        if( c == (msg[2]^msg[1]))
+          *state = 4;
+
+        break;
+
+      case 4:
+        if(c != msg[0])
+          *state =0;
+        else
+          return true;
+
+        break;
+
+      default:
+
+        break;
+
+      }
+
+
+    return false;
+
+}
+
 int llclose(int fd){
 
 
@@ -107,160 +235,5 @@ int llclose(int fd){
     close(fd);
 
     return 0;
-
-}
-
-int llopen_transmitter(int fd){
-
-  char SET[5] = {FLAG, A, C_SET, A ^ C_SET, FLAG};
-  bool STOP = false;
-  unsigned char c;
-  int state=0;
-
-  signal(SIGALRM, alarmHandler);
-
-  do{
-
-      printf("llopen: sending SET\n");
-
-      if(write(fd,SET,5) != 5){
-          printf("data_link - llopen: write error\n");
-          exit(-1);
-      }
-
-      timedOut = false;
-      alarm(3);
-
-
-      while ((!STOP && !timedOut)) {
-
-      if(read(fd,&c,1)==-1){
-        printf("data_link - llopen: write error\n");
-        exit(-1);
-      }
-
-      printf("state: %d\n",state);
-      printf("char: %04x\n",c);
-
-
-        switch (state) {
-            case 0:
-              if(c == FLAG)
-                state=1;
-            break;
-
-            case 1:
-              if(c!= FLAG)
-                state=0;
-              if(c == A)
-                state=2;
-              break;
-
-            case 2:
-              if(c!= FLAG)
-                state =0;
-              else
-                state =1;
-
-              if(c == C_UA)
-                state =3;
-              break;
-
-            case 3:
-
-              if(c!= FLAG)
-                state =0;
-
-              if( c== FLAG)
-                state =1;
-
-              if( c == (C_UA^A))
-                state = 4;
-              break;
-
-            case 4:
-              if(c != FLAG)
-                state =0;
-
-              if(c== FLAG){
-                STOP = true;
-                printf("data-link - llopen(): UA received\n");
-              }
-              break;
-
-            default:
-              break;
-
-            }
-          }
-        }while(timedOut && count<3);
-
-        if(count ==3)
-          return -1;
-        else
-          return 0;
-
-}
-
-int llopen_receiver(int fd){
-
-    char UA[5] = {FLAG, A, C_UA, A ^ C_UA, FLAG};
-    unsigned char c;
-    bool STOP = false;
-    int state =0;
-
-
-  while(!STOP ){
-
-    	if (read(fd,&c,1) == -1){
-    			printf("ERROR in read()");
-    		return 1;
-     }
-
-     printf("char = %04x\n", c);
-     printf("state = %d\n", state);
-
-      switch(state){
-      case 0:
-        if(c == FLAG)
-          state =1;
-        break;
-      case 1:
-        if(c!= FLAG)
-          state =0;
-        if(c ==A  )
-          state = 2;
-        break;
-      case 2:
-        if(c!= FLAG)
-          state =0;
-        if(c == FLAG)
-          state =1;
-        if(c == C_SET )
-          state =3;
-        break;
-      case 3:
-        if(c!= FLAG)
-          state =0;
-        if( c== FLAG)
-          state =1;
-        if( c == (C_SET^A))
-          state = 4;
-        break;
-      case 4:
-        if(c != FLAG)
-          state =0;
-        if(c== FLAG ){
-            STOP = true;
-            printf("llopen(): received SET\n");
-        }
-      break;
-      }
-
-    }
-
-    write(fd, UA, 5);
-
-  return 0;
 
 }

@@ -24,6 +24,7 @@ typedef struct {
 linkLayer link_layer;
 
 
+
 void init_link_layer(int timeout,int numTransmissions, int baudRate);
 
 int set_terminus(int fd);
@@ -31,5 +32,6 @@ int set_terminus(int fd);
 int llopen(int port,status stat);
 int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
-
 int llclose(int fd);
+
+bool updateState(unsigned char c,int* state,char * msg);
