@@ -41,7 +41,7 @@ int llclose(int fd);
 char *create_frame(int *frame_len, char *packet, int packet_len);
 char *stuff_frame(char *packet, int *packet_len);
 
-int read_frame(int fd, char *frame, int *frame_length);
+int read_frame(int fd, unsigned char *frame, int *frame_length);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
 
 bool updateState(unsigned char c,int* state,char * msg);

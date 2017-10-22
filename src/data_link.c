@@ -230,12 +230,6 @@ int llwrite(int fd, char * packet, int length){
 
   int frame_length;
 
-
-  int i =0;
-  for(; i <length; i++)
-    printf("%x\n",packet[i]);
-
-
   char *frame = create_frame(&frame_length, packet, length);
 
    if(write(fd, frame, frame_length) != frame_length){
@@ -303,34 +297,26 @@ int llread(int fd, unsigned char *packet, int *packet_length) {
 
   unsigned char frame[MAX_SIZE];
   int frame_length;
-  bool start_packet_read = false;
 
-  while(!start_packet_read){
+
 
     if(read_frame(fd, frame, &frame_length)<0){
       printf("data_link - llread: error reading frame\n");
       exit(-1);
     }
 
-    int i;
-    for(i=0; i<frame_length;i++)
-      printf("%04x\n",frame[i]);
 
      *packet_length = frame_length - HEADER_SIZE;
-      packet = destuff_frame(frame+4, packet_length);
 
-      printf("----------------------\n");
+      memcpy(packet, destuff_frame(frame+4, packet_length), *packet_length);
 
-      for(i=0; i<*packet_length;i++)
-        printf("%04x\n",packet[i]);
 
-  }
 
   return 0;
 
 }
 
-int read_frame(int fd, char *frame, int *frame_length){
+int read_frame(int fd, unsigned char *frame, int *frame_length){
 
   bool STOP = false;
   char buf;
@@ -338,7 +324,7 @@ int read_frame(int fd, char *frame, int *frame_length){
   int flag_count = 0;
 
   while (!STOP) {
-    if (read(fd, &buf, 1) > 0) {
+    if (read(fd, &buf, 1) >0) {
       if (buf == FLAG) {
         flag_count++;
 

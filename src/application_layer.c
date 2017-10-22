@@ -67,20 +67,70 @@ void send_start_packet(int fd,char* filename){
 
   start_packet[3 + sizeof(info.st_size)] = FILE_NAME_BYTE;
   start_packet[4 + sizeof(info.st_size)] = filename_len;
-  *((unsigned char *)(start_packet +5+ sizeof(info.st_size))) = *filename;
+  strcat(start_packet + 5 + sizeof(info.st_size), filename);
 
   llwrite(app_layer.fileDescriptor, start_packet, start_packet_len);
-
 
 }
 
 void receive_data(){
 
-//  receive_start_packet();
-  char packet[MAX_SIZE];
+  receive_start_packet();
+
+
+}
+
+void receive_start_packet(){
+
+  unsigned char packet[MAX_SIZE];
   int packet_length;
 
 
-  llread(app_layer.fileDescriptor, packet, &packet_length);
+  do {
+      if ( llread(app_layer.fileDescriptor, packet, &packet_length) != 0) {
+        printf("app_layer - receive_data - receive_start_packet: error.\n");
+        exit(-1);
+      }
+
+  } while (packet[0] != (unsigned char)START_BYTE);
+
+  int i;
+  off_t file_size;
+  char* file_name;
+
+  i=0;
+  for(;i<packet_length;i++)
+    printf("%x\n",packet[i]);
+
+
+  // get file size
+  i = 1;
+  while (i < packet_length) {
+    if (packet[i] == FILE_SIZE_BYTE){
+      file_size = *((off_t *)(packet + i + 2));
+      break;
+    }
+
+    i += 2 + packet[i + 1];
+  }
+
+  // get file name
+  i = 1;
+  while (i < packet_length) {
+    if (packet[i] == FILE_NAME_BYTE) {
+      file_name = (char *)malloc((packet[i + 1] + 1) * sizeof(char));
+      memcpy(file_name, packet + i + 2, packet[i + 1]);
+      file_name[(packet[i + 1] + 1)] = 0;
+      break;
+    }
+
+    i += 2 + packet[i + 1];
+  }
+
+  printf("%d\n", file_size);
+
+  printf("%s\n", file_name);
+
+
 
 }

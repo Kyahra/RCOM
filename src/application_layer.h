@@ -16,6 +16,9 @@ typedef struct  {
 applicationLayer app_layer;
 
 void set_connection(char * port, char * mode);
+
 void send_data(char * path, char* filename);
-void send_start_packet(int fd, char* filename);
 void receive_data();
+
+void send_start_packet(int fd, char* filename);
+void receive_start_packet();
