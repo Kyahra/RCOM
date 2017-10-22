@@ -349,7 +349,7 @@ int read_frame(int fd, unsigned char *frame, int *frame_length){
 
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
-  unsigned char *destuffed = (unsigned char *)malloc(((*packet_len) + 100) * sizeof(unsigned char));
+  unsigned char *destuffed = (unsigned char *)malloc(((*packet_len) + 255) * sizeof(unsigned char));
   int i = 0;
   int j = 0;
 
