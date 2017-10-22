@@ -7,7 +7,6 @@
 
 
 
-
 int main(int argc, char** argv){
 
    if ( (argc < 3) ||
@@ -23,6 +22,14 @@ int main(int argc, char** argv){
    init_link_layer(TIMEOUT,TRANSMISSIONS,BAUDRATE);
 
    set_connection(argv[1],argv[2]);
+
+   char path[] = ".";
+   char filename[] = "}.txt";
+
+   if(strcmp(argv[2],"T")==0)
+    send_data(path,filename);
+   else
+    receive_data();
 
    return 0;
 }

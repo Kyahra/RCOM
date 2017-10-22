@@ -32,6 +32,15 @@ int set_terminus(int fd);
 int llopen(int port,status stat);
 int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
+
+int llwrite(int fd, char * packet, int length);
+int llread(int fd, char *packet, int *packet_len);
+
 int llclose(int fd);
+
+char *create_frame(int *frame_len, char *packet, int packet_len);
+char *stuff_frame(char *packet, int *packet_len);
+
+int read_frame(int fd, char *frame, int *frame_length);
 
 bool updateState(unsigned char c,int* state,char * msg);

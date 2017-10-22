@@ -56,6 +56,7 @@ int llopen(int port,status stat){
     if(llopen_receiver(fd) < 0)
       return -1;
 
+  link_layer.sequenceNumber =0;
 
   return fd;
 
@@ -79,10 +80,13 @@ int set_terminus(int fd){
    newtio.c_lflag = 0;
 
 
-   if(link_layer.stat == TRANSMITTER)
-   newtio.c_cc[VTIME]    = 5;   /* inter-character timer unused */
-   newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
-
+   if(link_layer.stat == TRANSMITTER){
+     newtio.c_cc[VTIME]    = 5;   /* inter-character timer unused */
+     newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
+   }else{
+     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
+     newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
+   }
 
 
    tcflush(fd, TCIOFLUSH);
@@ -108,8 +112,6 @@ int llopen_transmitter(int fd){
   signal(SIGALRM, alarmHandler);
 
   do{
-
-      printf("llopen: sending SET\n");
 
       if(write(fd,SET,5) != 5){
           printf("data_link - llopen: error writting SET\n");
@@ -154,7 +156,7 @@ int llopen_receiver(int fd){
     		return 1;
      }
 
-     STOP = updateState(c,&state,UA);
+     STOP = updateState(c,&state,SET);
 
     }
 
@@ -224,8 +226,130 @@ bool updateState(unsigned char c,int* state,char * msg){
 
 }
 
-int llclose(int fd){
+int llwrite(int fd, char * packet, int length){
 
+  int frame_length;
+
+
+  int i =0;
+  for(; i <length; i++)
+    printf("%x\n",packet[i]);
+
+
+  char *frame = create_frame(&frame_length, packet, length);
+
+   if(write(fd, frame, frame_length) != frame_length){
+     printf("yo");
+     exit(-1);
+   }
+
+   return 0;
+}
+
+char *create_frame(int *frame_len, char *packet, int packet_len){
+
+  unsigned char bcc2 = 0;
+
+  int i;
+  for (i = 0; i < packet_len; i++)
+    bcc2 ^= packet[i];
+
+  packet[packet_len]=bcc2;
+  packet_len++;
+
+  char *stuff_packet = stuff_frame(packet, &packet_len);
+
+  *frame_len = 5 + packet_len;
+  char *frame = (char *)malloc(*frame_len * sizeof(char));
+
+  frame[0] = FLAG;
+  frame[1] = A;
+  frame[2] = link_layer.sequenceNumber;
+  frame[3] = frame[1]^frame[2];
+
+  memcpy(frame + 4, stuff_packet, packet_len);
+
+  frame[*frame_len-1] = FLAG;
+
+  return frame;
+
+}
+
+char *stuff_frame(char *packet, int *packet_len) {
+
+  char *stuffed = (char *)malloc(((*packet_len) + 100) * sizeof(char));
+
+  int i = 0;
+  int j = 0;
+
+  for (; i < *packet_len; i++) {
+
+    if (packet[i] == ESC || packet[i] == FLAG) {
+
+      stuffed[j] = ESC;
+      stuffed[++j] = packet[i] ^ STUFF_BYTE;
+
+    } else
+      stuffed[j] = packet[j];
+
+    j++;
+  }
+
+  *packet_len = j;
+  return stuffed;
+}
+
+int llread(int fd, char *packet, int *packet_len) {
+
+  char frame[MAX_SIZE];
+  int frame_length;
+
+  if(read_frame(fd, frame, &frame_length)<0)
+    printf("data_link - llread: error reading frame\n");
+
+    printf("%d\n", frame_length);
+
+  int i=0;
+  for(; i<frame_length;i++)
+    printf("%04x\n",frame[i]);
+
+  return 0;
+
+}
+
+int read_frame(int fd, char *frame, int *frame_length){
+
+  bool STOP = false;
+  char buf;
+  *frame_length = 0;
+  int flag_count = 0;
+
+  while (!STOP) {
+    if (read(fd, &buf, 1) > 0) {
+      if (buf == FLAG) {
+        flag_count++;
+
+        if(flag_count == 2)
+          STOP = true;
+
+        frame[*frame_length] = buf;
+        (*frame_length)++;
+
+        }else {
+        if(flag_count>0) {
+          frame[*frame_length] = buf;
+          (*frame_length)++;
+          }
+        }
+      }else
+      return -1;
+    }
+
+
+        return 0;
+}
+
+int llclose(int fd){
 
     if ( tcsetattr(fd,TCSANOW,&link_layer.portSettings) == -1) {
       perror("tcsetattr");

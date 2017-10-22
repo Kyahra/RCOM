@@ -1,7 +1,7 @@
 #define BAUDRATE B38400
 #define TIMEOUT 3
 #define TRANSMISSIONS 3
-#define MAX_SIZE 10000
+#define MAX_SIZE 256
 
 #define COM1 0
 #define COM2 1
@@ -12,5 +12,16 @@
 #define A 0x03
 #define C_SET 0x03
 #define C_UA 0x07
+
+#define START_BYTE 2
+#define END_BYTE 3
+
+#define FILE_SIZE_BYTE 0
+#define FILE_NAME_BYTE 1
+
+
+#define ESC 0x7D
+#define STUFF_BYTE 0x20
+
 
 typedef enum { TRANSMITTER, RECEIVER } status;
