@@ -5,7 +5,7 @@
 
 #define COM1 0
 #define COM2 1
-#define COM1_PORT "/dev/tnt0"
+#define COM1_PORT "/dev/ttyS0"
 #define COM2_PORT "/dev/tnt1"
 
 #define FLAG 0x7e

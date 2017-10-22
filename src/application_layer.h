@@ -21,4 +21,4 @@ void send_data(char * path, char* filename);
 void receive_data();
 
 void send_start_packet(int fd, char* filename);
-void receive_start_packet();
+char* receive_start_packet(off_t* file_size);

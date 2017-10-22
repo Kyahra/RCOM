@@ -1,4 +1,4 @@
-include "application_layer.h"
+#include "application_layer.h"
 
 
 void set_connection(char * port, char * stat){
@@ -78,11 +78,14 @@ void receive_data(){
   off_t file_size;
   char* file_name;
 
-  receive_start_packet(&file_size,&file_name);
+  file_name = receive_start_packet(&file_size);
 
-  strcpy(file_name, "yo.txt");
+  //strcpy(file_name, "yo.txt");
 
-  int fd = open(file_name, O_WRONLY | O_CREAT , 0);
+
+  int fd = open(file_name, O_WRONLY | O_CREAT | O_TRUNC);
+
+
   if (fd <0) {
     printf("app_layer - receive_data: invalid file descriptor\n");
     exit(-1);
@@ -91,9 +94,11 @@ void receive_data(){
 
 
 
+close(fd);
+
 }
 
-void receive_start_packet(off_t* file_size,char**file_name){
+char* receive_start_packet(off_t* file_size){
 
   unsigned char packet[MAX_SIZE];
   int packet_length;
@@ -109,10 +114,6 @@ void receive_start_packet(off_t* file_size,char**file_name){
   } while (packet[0] != (unsigned char)START_BYTE);
 
   int i;
-
-  i=0;
-  for(;i<packet_length;i++)
-    printf("%x\n",packet[i]);
 
 
   // get file size
@@ -130,16 +131,16 @@ void receive_start_packet(off_t* file_size,char**file_name){
   i = 1;
   while (i < packet_length) {
     if (packet[i] == FILE_NAME_BYTE) {
-      *file_name = (char *)malloc((packet[i + 1] + 1) * sizeof(char));
-      memcpy(*file_name, packet + i + 2, packet[i + 1]);
+      char * file_name = (char *)malloc((packet[i + 1] + 1) * sizeof(char));
+      memcpy(file_name, packet + i + 2, packet[i + 1]);
       file_name[(packet[i + 1] + 1)] = 0;
-      break;
+      return file_name;
     }
 
     i += 2 + packet[i + 1];
   }
 
+  return NULL;
 
 
 }
-
