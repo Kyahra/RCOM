@@ -133,20 +133,20 @@ int llopen_transmitter(int fd){
 
       }
 
-        }while(timedOut && count<link_layer.numTransmissions);
+  } while(timedOut && count < link_layer.numTransmissions);
 
-        if(count ==link_layer.numTransmissions)
-          return -1;
-        else
-          return 0;
+  if(count == link_layer.numTransmissions)
+    return -1;
+  else
+    return 0;
 
 }
 
 int llopen_receiver(int fd){
 
-    unsigned char c;
-    int state =0;
-    bool STOP = false;
+  unsigned char c;
+  int state =0;
+  bool STOP = false;
 
 
   while(!STOP ){
@@ -154,17 +154,16 @@ int llopen_receiver(int fd){
     	if (read(fd,&c,1) == -1){
     			printf("data_link - llopen: read error\n");
     		return 1;
-     }
+      }
 
      STOP = updateState(c,&state,SET);
 
-    }
+  }
 
-    if(write(fd,UA,5) != 5){
-        printf("data_link - llopen: error writting UA\n");
-        exit(-1);
-    }
-
+  if(write(fd,UA,5) != 5){
+      printf("data_link - llopen: error writting UA\n");
+      exit(-1);
+  }
 
   return 0;
 

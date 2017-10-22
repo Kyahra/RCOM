@@ -17,8 +17,6 @@ int main(int argc, char** argv){
      exit(1);
    }
 
-
-
    init_link_layer(TIMEOUT,TRANSMISSIONS,BAUDRATE);
 
    set_connection(argv[1],argv[2]);
@@ -30,9 +28,6 @@ int main(int argc, char** argv){
     send_data(path,filename);
    else
     receive_data();
-
-
-  
 
    return 0;
 }
