@@ -1,4 +1,4 @@
-#include "application_layer.h"
+include "application_layer.h"
 
 
 void set_connection(char * port, char * stat){
@@ -38,7 +38,7 @@ void send_data(char * path, char* filename){
 
   int fd = open(full_path, O_RDONLY);
   if (fd <0) {
-    printf("app_layer - send_date: invalid file decriptor\n");
+    printf("app_layer - send_data: invalid file decriptor\n");
     exit(-1);
    }
 
@@ -75,12 +75,25 @@ void send_start_packet(int fd,char* filename){
 
 void receive_data(){
 
-  receive_start_packet();
+  off_t file_size;
+  char* file_name;
+
+  receive_start_packet(&file_size,&file_name);
+
+  strcpy(file_name, "yo.txt");
+
+  int fd = open(file_name, O_WRONLY | O_CREAT , 0);
+  if (fd <0) {
+    printf("app_layer - receive_data: invalid file descriptor\n");
+    exit(-1);
+   }
+
+
 
 
 }
 
-void receive_start_packet(){
+void receive_start_packet(off_t* file_size,char**file_name){
 
   unsigned char packet[MAX_SIZE];
   int packet_length;
@@ -92,11 +105,10 @@ void receive_start_packet(){
         exit(-1);
       }
 
+
   } while (packet[0] != (unsigned char)START_BYTE);
 
   int i;
-  off_t file_size;
-  char* file_name;
 
   i=0;
   for(;i<packet_length;i++)
@@ -107,7 +119,7 @@ void receive_start_packet(){
   i = 1;
   while (i < packet_length) {
     if (packet[i] == FILE_SIZE_BYTE){
-      file_size = *((off_t *)(packet + i + 2));
+      *file_size = *((off_t *)(packet + i + 2));
       break;
     }
 
@@ -118,8 +130,8 @@ void receive_start_packet(){
   i = 1;
   while (i < packet_length) {
     if (packet[i] == FILE_NAME_BYTE) {
-      file_name = (char *)malloc((packet[i + 1] + 1) * sizeof(char));
-      memcpy(file_name, packet + i + 2, packet[i + 1]);
+      *file_name = (char *)malloc((packet[i + 1] + 1) * sizeof(char));
+      memcpy(*file_name, packet + i + 2, packet[i + 1]);
       file_name[(packet[i + 1] + 1)] = 0;
       break;
     }
@@ -127,10 +139,7 @@ void receive_start_packet(){
     i += 2 + packet[i + 1];
   }
 
-  printf("%d\n", file_size);
-
-  printf("%s\n", file_name);
-
 
 
 }
+
