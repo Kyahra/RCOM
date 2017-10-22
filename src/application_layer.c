@@ -67,7 +67,7 @@ void send_start_packet(int fd,char* filename){
 
   start_packet[3 + sizeof(info.st_size)] = FILE_NAME_BYTE;
   start_packet[4 + sizeof(info.st_size)] = filename_len;
-  *((char *)(start_packet +5+ sizeof(info.st_size))) = *filename;
+  *((unsigned char *)(start_packet +5+ sizeof(info.st_size))) = *filename;
 
   llwrite(app_layer.fileDescriptor, start_packet, start_packet_len);
 
@@ -75,10 +75,12 @@ void send_start_packet(int fd,char* filename){
 }
 
 void receive_data(){
+
+//  receive_start_packet();
   char packet[MAX_SIZE];
-  int packet_len;
+  int packet_length;
 
-  llread(app_layer.fileDescriptor, packet, &packet_len) ;
 
+  llread(app_layer.fileDescriptor, packet, &packet_length);
 
 }

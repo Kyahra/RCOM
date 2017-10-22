@@ -15,6 +15,7 @@
 
 #define START_BYTE 2
 #define END_BYTE 3
+#define HEADER_SIZE 6
 
 #define FILE_SIZE_BYTE 0
 #define FILE_NAME_BYTE 1

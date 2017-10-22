@@ -299,19 +299,32 @@ char *stuff_frame(char *packet, int *packet_len) {
   return stuffed;
 }
 
-int llread(int fd, char *packet, int *packet_len) {
+int llread(int fd, unsigned char *packet, int *packet_length) {
 
-  char frame[MAX_SIZE];
+  unsigned char frame[MAX_SIZE];
   int frame_length;
+  bool start_packet_read = false;
 
-  if(read_frame(fd, frame, &frame_length)<0)
-    printf("data_link - llread: error reading frame\n");
+  while(!start_packet_read){
 
-    printf("%d\n", frame_length);
+    if(read_frame(fd, frame, &frame_length)<0){
+      printf("data_link - llread: error reading frame\n");
+      exit(-1);
+    }
 
-  int i=0;
-  for(; i<frame_length;i++)
-    printf("%04x\n",frame[i]);
+    int i;
+    for(i=0; i<frame_length;i++)
+      printf("%04x\n",frame[i]);
+
+     *packet_length = frame_length - HEADER_SIZE;
+      packet = destuff_frame(frame+4, packet_length);
+
+      printf("----------------------\n");
+
+      for(i=0; i<*packet_length;i++)
+        printf("%04x\n",packet[i]);
+
+  }
 
   return 0;
 
@@ -347,6 +360,26 @@ int read_frame(int fd, char *frame, int *frame_length){
 
 
         return 0;
+}
+
+unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
+
+  unsigned char *destuffed = (unsigned char *)malloc(((*packet_len) + 100) * sizeof(unsigned char));
+  int i = 0;
+  int j = 0;
+
+  for (; i < *packet_len; i++) {
+    if (packet[i] == ESC) {
+      destuffed[j] = packet[i + 1] ^ STUFF_BYTE;
+      i++;
+    } else
+      destuffed[j] = packet[i];
+    j++;
+  }
+
+  *packet_len = j;
+
+  return destuffed;
 }
 
 int llclose(int fd){
