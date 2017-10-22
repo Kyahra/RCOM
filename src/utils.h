@@ -24,5 +24,15 @@
 #define ESC 0x7D
 #define STUFF_BYTE 0x20
 
+#define PACKET_SIZE 256
+#define PACKET_HEADER_SIZE 4
+#define PACKET_DATA_SIZE PACKET_SIZE - PACKET_HEADER_SIZE
+
+#define DATA_PACKET_BYTE 1
+#define START_PACKET_BYTE 2
+#define END_PACKET_BYTE 3
+
+
+
 
 typedef enum { TRANSMITTER, RECEIVER } status;

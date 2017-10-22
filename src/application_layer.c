@@ -43,6 +43,54 @@ void send_data(char * path, char* filename){
    }
 
   send_start_packet(fd,filename);
+  send_packets(fd,filename);
+
+
+}
+
+int send_packets(int fd, char* filename){
+
+  struct stat info;
+  fstat(fd, &info);
+
+  int filename_len = strlen(filename);
+  off_t file_size = info.st_size;
+
+
+  char data[PACKET_DATA_SIZE];
+  int i = 0;
+  off_t bytes_to_read = file_size;
+
+    while(bytes_to_read>0){
+      int number_chars=read(fd,fata,PACKET_DATA_SIZE);
+
+      if(number_chars <0){
+          printf("error reading the file\n" );
+          return -1;
+      }
+
+     char inf_packet[PACKET_SIZE];
+     int packet_size= read_chars + PACKET_HEADER_SIZE;
+
+     inf_packet[0] = DATA_PACKET_BYTE;
+     inf_packet[1] = i % 256;
+     inf_packet[2] = number_chars / 256;
+     inf_packet[3] = number_chars % 256;
+
+     memcpy(inf_packet +PACKET_HEADER_SIZE,data,number_chars);
+
+     llwrite(app_layer.fileDescriptor,inf_packet,packet_size);
+     bytes_to_read -= number_chars;
+        i++;
+
+
+
+
+
+    }
+
+
+
 
 
 }
