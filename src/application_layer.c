@@ -42,8 +42,9 @@ void send_data(char * path, char* filename){
     exit(-1);
    }
 
-  send_start_packet(fd,filename);
+  send_control_packet(fd,filename, START_BYTE);
   send_packets(fd,filename);
+  send_control_packet(fd,filename, END_BYTE);
 
 
 }
@@ -88,7 +89,7 @@ void send_packets(int fd, char* filename){
 
 }
 
-void send_start_packet(int fd,char* filename){
+void send_control_packet(int fd,char* filename,unsigned char control_byte){
 
   struct stat info;
   fstat(fd, &info);
@@ -100,7 +101,7 @@ void send_start_packet(int fd,char* filename){
   int start_packet_len = 5 + sizeof(info.st_size) + filename_len;
   char *start_packet = (char *)malloc(sizeof(char) * start_packet_len);
 
-  start_packet[0] = START_BYTE;
+  start_packet[0] = control_byte;
 
   start_packet[1] = FILE_SIZE_BYTE;
   start_packet[2] = sizeof(info.st_size);

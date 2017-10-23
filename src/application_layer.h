@@ -20,6 +20,6 @@ void set_connection(char * port, char * mode);
 void send_data(char * path, char* filename);
 void receive_data();
 
-void send_start_packet(int fd, char* filename);
+void send_control_packet(int fd, char* filename, unsigned char control_byte);
 void send_packets(int fd, char* filename);
 char* receive_start_packet(off_t* file_size);
