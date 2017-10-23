@@ -240,13 +240,13 @@ int llwrite(int fd, char * packet, int length){
 }
 
 
-int send_frame_I(int fd, char * frame, int packet_length){
-
-  char reply[255];
-  int reply_length;
-  count=0;
-
-}
+// int send_frame_I(int fd, char * frame, int packet_length){
+//
+//   char reply[255];
+//   int reply_length;
+//   count=0;
+//
+// }
 
 char *create_frame(int *frame_len, char *packet, int packet_len){
 
@@ -259,11 +259,7 @@ char *create_frame(int *frame_len, char *packet, int packet_len){
   packet[packet_len]=bcc2;
   packet_len++;
 
-
-
   char *stuff_packet = stuff_frame(packet, &packet_len);
-
-
 
   *frame_len = 5 + packet_len;
   char *frame = (char *)malloc(*frame_len * sizeof(char));
@@ -276,7 +272,6 @@ char *create_frame(int *frame_len, char *packet, int packet_len){
   memcpy(frame + 4, stuff_packet, packet_len);
 
   frame[*frame_len-1] = FLAG;
-
 
   return frame;
 
@@ -320,10 +315,17 @@ int llread(int fd, unsigned char *packet) {
     exit(-1);
   }
 
+
+  // if(!valid_frame(frame, frame_length){
+  //   printf("Invalid frame header. It is being rejected...\n");
+  //   reply = create_frame_US(&reply_len, REJ);
+  // }
+
   packet_length = frame_length - HEADER_SIZE;
 
-  // Check bbc 2 before dstuffing
+  // Check bbc 2 before destuffing
   unsigned char bcc2;
+  unsigned char bbc2_received  = 0;
 
   if (frame[frame_length - 3] == ESC) {
         bcc2 = frame[frame_length - 2] ^ STUFF_BYTE;
@@ -332,18 +334,13 @@ int llread(int fd, unsigned char *packet) {
     bcc2 = frame[frame_length - 2];
 
 
-
-  // if(!valid_frame(frame, frame_length){
-  //   printf("Invalid frame header. It is being rejected...\n");
-  //   reply = create_frame_US(&reply_len, REJ);
-  // }
   unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
 
+  int i;
+  for(i = 0; i < packet_length; i++){
 
-
-
-
-
+    bbc2_received ^= packet[i];
+  }
 
   memcpy(packet,destuffed , packet_length);
 
@@ -377,6 +374,28 @@ int read_packet(int fd, unsigned char *frame, int *frame_length){
         }
       }else
     return -1;
+  }
+
+  return 0;
+}
+
+int write_packet(int fd, char *frame, int frame_length){
+
+  int total_chars = 0;
+  int written_chars = 0;
+
+  while(total_chars < frame_length){
+
+    written_chars = write(fd, frame, frame_length);
+
+    if(written_chars <= 0){
+
+      printf("Written chars: %d\n", written_chars);
+      printf("%s\n", strerror(errno));
+      return -1;
+    }
+
+    total_chars += written_chars;
   }
 
   return 0;
@@ -462,6 +481,18 @@ int llclose(int fd){
 //   return buf;
 //
 // }
+
+// int UA_frame(char *reply) {
+//
+//   if(reply[0] == FLAG &&
+//      reply[1] == ((data_link.stat == TRANSMITTER) ? SEND : RECEIVE) &&
+//      reply[2] == UA && reply[3] == (reply[1] ^ reply[2]) &&
+//      reply[4] == FLAG)
+//     return 1;
+//   else return 0;
+// }
+
+
 //
 // int DISC_frame(char * reply){
 //
@@ -471,5 +502,27 @@ int llclose(int fd){
 //      reply[4] == FLAG)
 //      return 1;
 //   else return 0;
+//
+// }
+
+//
+// int valid_seq_number(char control_byte, int s) {
+//
+//   return (control_byte == (s << 6));
+// }
+
+
+// int close_connection(int fd) {
+//
+//   int frame_length = 0;
+//   char *frame = create_frame_US(&frame_length, DISC);
+//
+//    TODO: send_frame_US
+//   if(send_frame_US(fd, frame, frame_length, UA_frame) != 0){
+//     printf("Not able to send frame on llclose().\n");
+//     return -1;
+//   }
+//
+//   return 0;
 //
 // }

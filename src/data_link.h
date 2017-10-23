@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "utils.h"
 
@@ -44,8 +45,12 @@ char *stuff_frame(char *packet, int *packet_len);
 int read_packet(int fd, unsigned char *frame, int *frame_length);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
 
+int write_packet(int fd, char *frame, int frame_length);
+
 char *create_frame_US(int *frame_length, int control_byte);
 
 int valid_frame(char * frame, int frame_length);
 
 bool updateState(unsigned char c,int* state,char * msg);
+
+int close_connection(int fd);
