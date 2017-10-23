@@ -48,48 +48,41 @@ void send_data(char * path, char* filename){
 
 }
 
-int send_packets(int fd, char* filename){
+void send_packets(int fd, char* filename){
 
   struct stat info;
   fstat(fd, &info);
 
-  int filename_len = strlen(filename);
   off_t file_size = info.st_size;
 
 
-  char data[PACKET_DATA_SIZE];
+  char data[DATA_PACKET_SIZE];
   int i = 0;
   off_t bytes_to_read = file_size;
 
     while(bytes_to_read>0){
-      int number_chars=read(fd,fata,PACKET_DATA_SIZE);
+      int num_chars=read(fd,data,DATA_PACKET_SIZE);
 
-      if(number_chars <0){
-          printf("error reading the file\n" );
-          return -1;
+      if(num_chars <0){
+          printf("app_layer - send_packets: error reading data\n" );
+          exit(-1);
       }
 
-     char inf_packet[PACKET_SIZE];
-     int packet_size= read_chars + PACKET_HEADER_SIZE;
+     char data_packet[PACKET_SIZE];
+     int packet_size= num_chars + PACKET_HEADER_SIZE;
 
-     inf_packet[0] = DATA_PACKET_BYTE;
-     inf_packet[1] = i % 256;
-     inf_packet[2] = number_chars / 256;
-     inf_packet[3] = number_chars % 256;
+     data_packet[0] = DATA_BYTE;
+     data_packet[1] = i % 256;
+     data_packet[2] = 0;
+     data_packet[3] = num_chars;
 
-     memcpy(inf_packet +PACKET_HEADER_SIZE,data,number_chars);
+     memcpy(data_packet +PACKET_HEADER_SIZE,data,num_chars);
 
-     llwrite(app_layer.fileDescriptor,inf_packet,packet_size);
-     bytes_to_read -= number_chars;
+     llwrite(app_layer.fileDescriptor,data_packet,packet_size);
+     bytes_to_read -= num_chars;
         i++;
 
-
-
-
-
     }
-
-
 
 
 
@@ -148,12 +141,14 @@ close(fd);
 
 char* receive_start_packet(off_t* file_size){
 
-  unsigned char packet[MAX_SIZE];
+  unsigned char packet[PACKET_SIZE];
   int packet_length;
 
 
   do {
-      if ( llread(app_layer.fileDescriptor, packet, &packet_length) != 0) {
+
+    packet_length = llread(app_layer.fileDescriptor, packet;
+      if ( packet_length <0) {
         printf("app_layer - receive_data - receive_start_packet: error.\n");
         exit(-1);
       }

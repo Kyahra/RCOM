@@ -292,30 +292,31 @@ char *stuff_frame(char *packet, int *packet_len) {
   return stuffed;
 }
 
-int llread(int fd, unsigned char *packet, int *packet_length) {
+int llread(int fd, unsigned char *packet) {
 
   unsigned char frame[MAX_SIZE];
   int frame_length;
+  int packet_length;
 
 
 
-    if(read_frame(fd, frame, &frame_length)<0){
+    if(read_packet(fd, frame, &frame_length)<0){
       printf("data_link - llread: error reading frame\n");
       exit(-1);
     }
 
 
-     *packet_length = frame_length - HEADER_SIZE;
+     packet_length = frame_length - HEADER_SIZE;
 
-      memcpy(packet, destuff_frame(frame+4, packet_length), *packet_length);
+    memcpy(packet, destuff_frame(frame+4, packet_length), packet_length);
 
 
 
-  return 0;
+  return packet_length;
 
 }
 
-int read_frame(int fd, unsigned char *frame, int *frame_length){
+int read_packet(int fd, unsigned char *frame, int *frame_length){
 
   bool STOP = false;
   char buf;
