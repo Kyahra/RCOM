@@ -270,7 +270,7 @@ char *create_frame(int *frame_len, char *packet, int packet_len){
 
 char *stuff_frame(char *packet, int *packet_len) {
 
-  char *stuffed = (char *)malloc(((*packet_len) + 100) * sizeof(char));
+  char *stuffed = (char *)malloc(((*packet_len) + 256) * sizeof(char));
 
   int i = 0;
   int j = 0;
@@ -305,13 +305,14 @@ int llread(int fd, unsigned char *packet) {
   }
 
 
-  if(!valid_frame(frame, frame_length){
-    printf("Invalid frame header. It is being rejected...\n");
-  }
 
-  *packet_length = frame_length - HEADER_SIZE;
+  // if(!valid_frame(frame, frame_length){
+  //   printf("Invalid frame header. It is being rejected...\n");
+  // }
 
-  memcpy(packet, destuff_frame(frame+4, packet_length), *packet_length);
+  packet_length = frame_length - HEADER_SIZE;
+
+  memcpy(packet, destuff_frame(frame+4, &packet_length), packet_length);
 
   return packet_length;
 
@@ -381,49 +382,49 @@ int llclose(int fd){
 
 }
 
-int valid_frame(char * frame, int frame_length){
-
-  if(frame_length < 6)
-    return 0;
-
-  if(frame[0] == FLAG && frame[1] == SEND && frame[3] == (frame[1] ^ frame[2]))
-    return 0;
-  else return -1;
-}
-
-
-char *create_frame_US(int *frame_length, int control_byte) {
-
-  static char r = 0;
-  char *buf = (char *)malloc(US_FRAME_LENGTH * sizeof(char));
-  buf[0] = FLAG;
-
-  if(data_link.stat == TRANSMITTER) {
-
-    if(control_byte == SET || control_byte == DISC)
-      buf[1] = SEND;
-    else
-      buf[1] = RECEIVE;
-  }
-  else {
-
-    if(control_byte == RR || control_byte == REJ || control_byte == UA)
-      buf[1] = SEND;
-    else
-      buf[1] = RECEIVE;
-  }
-
-  if(control_byte == RR ||  control_byte == REJ) {
-
-    buf[2] = r << 7 | control_byte;
-    r = !r;
-  }
-  else buf[2] = control_byte;
-
-  buf[3] = buf[1] ^ buf[2];
-  buf[4] = FLAG;
-  *frame_length = US_FRAME_LENGTH;
-
-  return buf;
-
-}
+// int valid_frame(char * frame, int frame_length){
+//
+//   if(frame_length < 6)
+//     return 0;
+//
+//   if(frame[0] == FLAG && frame[1] == SEND && frame[3] == (frame[1] ^ frame[2]))
+//     return 0;
+//   else return -1;
+// }
+//
+//
+// char *create_frame_US(int *frame_length, int control_byte) {
+//
+//   static char r = 0;
+//   char *buf = (char *)malloc(US_FRAME_LENGTH * sizeof(char));
+//   buf[0] = FLAG;
+//
+//   if(data_link.stat == TRANSMITTER) {
+//
+//     if(control_byte == SET || control_byte == DISC)
+//       buf[1] = SEND;
+//     else
+//       buf[1] = RECEIVE;
+//   }
+//   else {
+//
+//     if(control_byte == RR || control_byte == REJ || control_byte == UA)
+//       buf[1] = SEND;
+//     else
+//       buf[1] = RECEIVE;
+//   }
+//
+//   if(control_byte == RR ||  control_byte == REJ) {
+//
+//     buf[2] = r << 7 | control_byte;
+//     r = !r;
+//   }
+//   else buf[2] = control_byte;
+//
+//   buf[3] = buf[1] ^ buf[2];
+//   buf[4] = FLAG;
+//   *frame_length = US_FRAME_LENGTH;
+//
+//   return buf;
+//
+// }

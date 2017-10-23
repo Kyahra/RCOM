@@ -5,7 +5,7 @@
 
 #define COM1 0
 #define COM2 1
-#define COM1_PORT "/dev/ttyS0"
+#define COM1_PORT "/dev/tnt0"
 #define COM2_PORT "/dev/tnt1"
 
 #define FLAG 0x7e
@@ -30,8 +30,11 @@
 #define DATA_PACKET_SIZE PACKET_SIZE - PACKET_HEADER_SIZE
 
 
-
-
+#define SEND 0x03
+#define RECEIVE 0x01
+#define DISC 0x0B
+#define RR 0x05
+#define REJ 0x01
 
 #define US_FRAME_LENGTH 5
 

@@ -22,7 +22,7 @@ int main(int argc, char** argv){
    set_connection(argv[1],argv[2]);
 
    char path[] = ".";
-   char filename[] = "pinguim.gif";
+   char filename[] = "yo1.txt";
 
    if(strcmp(argv[2],"T")==0)
     send_data(path,filename);
