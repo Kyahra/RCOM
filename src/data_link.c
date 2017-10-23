@@ -297,6 +297,9 @@ int llread(int fd, unsigned char *packet) {
   unsigned char frame[MAX_SIZE];
   int frame_length;
   int packet_length;
+  int reply_length;
+  char *reply;
+
 
 
   if(read_packet(fd, frame, &frame_length)<0){
@@ -304,10 +307,9 @@ int llread(int fd, unsigned char *packet) {
     exit(-1);
   }
 
-
-
   // if(!valid_frame(frame, frame_length){
   //   printf("Invalid frame header. It is being rejected...\n");
+  //   reply = create_frame_US(&reply_len, REJ);
   // }
 
   packet_length = frame_length - HEADER_SIZE;
@@ -381,15 +383,15 @@ int llclose(int fd){
     return 0;
 
 }
-
+//
 // int valid_frame(char * frame, int frame_length){
 //
 //   if(frame_length < 6)
 //     return 0;
 //
 //   if(frame[0] == FLAG && frame[1] == SEND && frame[3] == (frame[1] ^ frame[2]))
-//     return 0;
-//   else return -1;
+//     return 1;
+//   else return 0;
 // }
 //
 //
@@ -428,3 +430,14 @@ int llclose(int fd){
 //   return buf;
 //
 // }
+
+int DISC_frame(char * reply){
+
+  if(reply[0] == FLAG &&
+     reply[1] == ((data_link.stat == TRANSMITTER) ? SEND : RECEIVE) &&
+     reply[2] == UA && reply[3] == (reply[1] ^ reply[2]) &&
+     reply[4] == FLAG)
+     return 1;
+  else return 0;
+
+}

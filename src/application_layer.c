@@ -123,28 +123,25 @@ void receive_data(){
 
   strcpy(file_name, "yo2.txt");
 
-
   int fd = open(file_name, O_RDWR | O_CREAT | O_TRUNC);
-
 
   if (fd <0) {
     printf("app_layer - receive_data: invalid file descriptor\n");
     exit(-1);
    }
 
-     unsigned char packet[PACKET_SIZE];
+  unsigned char packet[PACKET_SIZE];
 
-    int packet_length = llread(app_layer.fileDescriptor, packet);
+  int packet_length = llread(app_layer.fileDescriptor, packet);
 
-    int i =0;
+  write(fd, packet, packet_length);
 
-    for(;i<packet_length;i++)
+  int i =0;
+
+  for(;i<packet_length;i++)
       printf("%x\n",packet[i]);
 
-
-
-
-close(fd);
+  close(fd);
 
 }
 
