@@ -301,20 +301,37 @@ int llread(int fd, unsigned char *packet) {
   // char *reply;
 
 
-
   if(read_packet(fd, frame, &frame_length)<0){
     printf("data_link - llread: error reading frame\n");
     exit(-1);
   }
 
+  packet_length = frame_length - HEADER_SIZE;
+
+  // Check bbc 2 before dstuffing
+  unsigned char bcc2;
+
+  if (frame[frame_length - 3] == ESC) {
+        bcc2 = frame[frame_length - 2] ^ STUFF_BYTE;
+        packet_length--;
+  }else
+    bcc2 = frame[frame_length - 2];
+
+
+
   // if(!valid_frame(frame, frame_length){
   //   printf("Invalid frame header. It is being rejected...\n");
   //   reply = create_frame_US(&reply_len, REJ);
   // }
+  unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
 
-  packet_length = frame_length - HEADER_SIZE;
 
-  memcpy(packet, destuff_frame(frame+4, &packet_length), packet_length);
+
+  
+
+
+
+  memcpy(packet,destuffed , packet_length);
 
   return packet_length;
 
@@ -353,7 +370,7 @@ int read_packet(int fd, unsigned char *frame, int *frame_length){
 
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
-  unsigned char *destuffed = (unsigned char *)malloc(((*packet_len) + 255) * sizeof(unsigned char));
+  unsigned char *destuffed = (unsigned char *)malloc(((*packet_len)) * sizeof(unsigned char));
   int i = 0;
   int j = 0;
 
@@ -363,6 +380,7 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
       i++;
     } else
       destuffed[j] = packet[i];
+
     j++;
   }
 
