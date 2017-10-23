@@ -116,6 +116,8 @@ void send_start_packet(int fd,char* filename){
 
 void receive_data(){
 
+  // receive start packet
+
   off_t file_size;
   char* file_name;
 
@@ -123,18 +125,42 @@ void receive_data(){
 
   strcpy(file_name, "yo2.txt");
 
-
   int fd = open(file_name, O_RDWR | O_CREAT | O_TRUNC);
-
-
   if (fd <0) {
     printf("app_layer - receive_data: invalid file descriptor\n");
     exit(-1);
    }
 
-     unsigned char packet[PACKET_SIZE];
+   // reveive data packets
 
-    int packet_length = llread(app_layer.fileDescriptor, packet);
+  unsigned char packet[PACKET_SIZE];
+  int packet_length;
+
+  while(true){
+      packet_length = llread(app_layer.fileDescriptor, packet);
+
+      if (packet_length < 0) {
+        printf("app_layer - receive_data: error llread\n");
+        close(fd);
+        exit(-1);
+      }
+
+      if(packet[0] == END_BYTE) break;
+
+      // falta tratar so sequence number!!
+      // não esquecer
+
+      unsigned int data_len = packet[2] * 256 + packet[3];
+
+      if (write(fd, packet + 4, data_len) != data_len) {
+        printf("app_layer - receive_data: write error\n");
+        close(fd);
+        exit(-1);
+      }
+
+      
+    }
+
 
     int i =0;
 
@@ -142,9 +168,7 @@ void receive_data(){
       printf("%x\n",packet[i]);
 
 
-
-
-close(fd);
+ close(fd);
 
 }
 
