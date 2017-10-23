@@ -123,7 +123,7 @@ void receive_data(){
 
   file_name = receive_start_packet(&file_size);
 
-  strcpy(file_name, "yo2.txt");
+  strcpy(file_name, "pinguim.gif");
 
   int fd = open(file_name, O_RDWR | O_CREAT | O_TRUNC);
 
