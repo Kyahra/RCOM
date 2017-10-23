@@ -239,6 +239,17 @@ int llwrite(int fd, char * packet, int length){
    return 0;
 }
 
+
+int send_frame_I(int fd, char * frame, int packet_length){
+
+  char reply[255];
+  int reply_length;
+  count=0;
+
+
+
+}
+
 char *create_frame(int *frame_len, char *packet, int packet_len){
 
   unsigned char bcc2 = 0;
@@ -250,7 +261,11 @@ char *create_frame(int *frame_len, char *packet, int packet_len){
   packet[packet_len]=bcc2;
   packet_len++;
 
+
+
   char *stuff_packet = stuff_frame(packet, &packet_len);
+
+
 
   *frame_len = 5 + packet_len;
   char *frame = (char *)malloc(*frame_len * sizeof(char));
@@ -263,6 +278,7 @@ char *create_frame(int *frame_len, char *packet, int packet_len){
   memcpy(frame + 4, stuff_packet, packet_len);
 
   frame[*frame_len-1] = FLAG;
+
 
   return frame;
 
@@ -283,7 +299,7 @@ char *stuff_frame(char *packet, int *packet_len) {
       stuffed[++j] = packet[i] ^ STUFF_BYTE;
 
     } else
-      stuffed[j] = packet[j];
+      stuffed[j] = packet[i];
 
     j++;
   }
