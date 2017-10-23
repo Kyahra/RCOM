@@ -36,7 +36,7 @@ void send_data(char * path, char* filename){
   strcat(full_path, "/");
   strcat(full_path, filename);
 
-  int fd = open(full_path, O_RDONLY);
+  int fd = open(full_path, O_RDONLY); (content)
   if (fd <0) {
     printf("app_layer - send_data: invalid file decriptor\n");
     exit(-1);
@@ -124,7 +124,7 @@ void receive_data(){
 
   file_name = receive_start_packet(&file_size);
 
-  strcpy(file_name, "pinguim.gif");
+  strcpy(file_name, "p.gif");
 
   int fd = open(file_name, O_RDWR | O_CREAT | O_TRUNC);
 
@@ -153,6 +153,10 @@ void receive_data(){
 
       unsigned int data_len = packet[2] * 256 + packet[3];
 
+    int i =0;
+
+
+
       if (write(fd, packet + 4, data_len) != data_len) {
         printf("app_layer - receive_data: write error\n");
         close(fd);
@@ -160,14 +164,13 @@ void receive_data(){
       }
 
 
+
+
     }
 
 
 
-  int i =0;
 
-  for(;i<packet_length;i++)
-      printf("%x\n",packet[i]);
 
   close(fd);
 
