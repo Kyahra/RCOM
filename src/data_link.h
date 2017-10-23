@@ -34,15 +34,17 @@ int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
 
 int llwrite(int fd, char * packet, int length);
-int llread(int fd, unsigned char *packet, int *packet_len);
+int llread(int fd, unsigned char *packet);
 
 int llclose(int fd);
 
 char *create_frame(int *frame_len, char *packet, int packet_len);
 char *stuff_frame(char *packet, int *packet_len);
 
-int read_frame(int fd, unsigned char *frame, int *frame_length);
+int read_packet(int fd, unsigned char *frame, int *frame_length);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
+
+char *create_frame_US(int *frame_length, int control_byte);
 
 int valid_frame(char * frame, int frame_length);
 
