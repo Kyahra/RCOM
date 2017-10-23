@@ -298,18 +298,18 @@ int llread(int fd, unsigned char *packet, int *packet_length) {
   int frame_length;
 
 
+  if(read_frame(fd, frame, &frame_length)<0){
+    printf("data_link - llread: error reading frame\n");
+    exit(-1);
+  }
 
-    if(read_frame(fd, frame, &frame_length)<0){
-      printf("data_link - llread: error reading frame\n");
-      exit(-1);
-    }
+  if(!valid_frame(frame, frame_length){
+    printf("Invalid frame header. It is being rejected...\n");
+  }
 
+  *packet_length = frame_length - HEADER_SIZE;
 
-     *packet_length = frame_length - HEADER_SIZE;
-
-      memcpy(packet, destuff_frame(frame+4, packet_length), *packet_length);
-
-
+  memcpy(packet, destuff_frame(frame+4, packet_length), *packet_length);
 
   return 0;
 
@@ -340,11 +340,10 @@ int read_frame(int fd, unsigned char *frame, int *frame_length){
           }
         }
       }else
-      return -1;
-    }
+    return -1;
+  }
 
-
-        return 0;
+  return 0;
 }
 
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
@@ -378,4 +377,51 @@ int llclose(int fd){
 
     return 0;
 
+}
+
+int valid_frame(char * frame, int frame_length){
+
+  if(frame_length < 6)
+    return 0;
+
+  if(frame[0] == FLAG && frame[1] == SEND && frame[3] == (frame[1] ^ frame[2]))
+    return 0;
+  else return -1;
+}
+
+
+char *create_frame_US(int *frame_length, int control_byte) {
+
+  static char r = 0;
+  char *buf = (char *)malloc(US_FRAME_LENGTH * sizeof(char));
+  buf[0] = FLAG;
+
+  if(data_link.stat == TRANSMITTER) {
+
+    if(control_byte == SET || control_byte == DISC)
+      buf[1] = SEND;
+    else
+      buf[1] = RECEIVE;
+  }
+  else {
+
+    if(control_byte == RR || control_byte == REJ || control_byte == UA)
+      buf[1] = SEND;
+    else
+      buf[1] = RECEIVE;
+  }
+
+  if(control_byte == RR ||  control_byte == REJ) {
+
+    buf[2] = r << 7 | control_byte;
+    r = !r;
+  }
+  else buf[2] = control_byte;
+
+  buf[3] = buf[1] ^ buf[2];
+  buf[4] = FLAG;
+  *frame_length = US_FRAME_LENGTH;
+
+  return buf;
+  
 }

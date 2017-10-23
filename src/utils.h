@@ -33,6 +33,9 @@
 #define END_PACKET_BYTE 3
 
 
+#define US_FRAME_LENGTH 5
+
+
 
 
 typedef enum { TRANSMITTER, RECEIVER } status;

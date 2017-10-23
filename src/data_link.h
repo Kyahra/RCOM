@@ -44,4 +44,6 @@ char *stuff_frame(char *packet, int *packet_len);
 int read_frame(int fd, unsigned char *frame, int *frame_length);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
 
+int valid_frame(char * frame, int frame_length);
+
 bool updateState(unsigned char c,int* state,char * msg);
