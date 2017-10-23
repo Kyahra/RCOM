@@ -297,8 +297,8 @@ int llread(int fd, unsigned char *packet) {
   unsigned char frame[MAX_SIZE];
   int frame_length;
   int packet_length;
-  int reply_length;
-  char *reply;
+  // int reply_length;
+  // char *reply;
 
 
 
@@ -430,14 +430,14 @@ int llclose(int fd){
 //   return buf;
 //
 // }
-
-int DISC_frame(char * reply){
-
-  if(reply[0] == FLAG &&
-     reply[1] == ((data_link.stat == TRANSMITTER) ? SEND : RECEIVE) &&
-     reply[2] == UA && reply[3] == (reply[1] ^ reply[2]) &&
-     reply[4] == FLAG)
-     return 1;
-  else return 0;
-
-}
+//
+// int DISC_frame(char * reply){
+//
+//   if(reply[0] == FLAG &&
+//      reply[1] == ((data_link.stat == TRANSMITTER) ? SEND : RECEIVE) &&
+//      reply[2] == UA && reply[3] == (reply[1] ^ reply[2]) &&
+//      reply[4] == FLAG)
+//      return 1;
+//   else return 0;
+//
+// }
