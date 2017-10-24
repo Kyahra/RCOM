@@ -20,11 +20,11 @@ void init_link_layer(int timeout,int numTransmissions, int baudRate){
 
 }
 
-int llopen(int port,status stat){
+int llopen(int port,status mode){
 
   int fd;
 
-  link_layer.stat = stat;
+  link_layer.mode = mode;
 
   switch (port) {
   case COM1:
@@ -47,12 +47,14 @@ int llopen(int port,status stat){
     printf("data_link - llopen() - set_terminus: error\n");
     return -1;
   }
+	
+  link_layer.mode = mode;
 
-  if(stat == TRANSMITTER)
+  if(mode == TRANSMITTER)
     if(llopen_transmitter(fd) <0)
       return -1;
 
-  if(stat == RECEIVER)
+  if(mode == RECEIVER)
     if(llopen_receiver(fd) < 0)
       return -1;
 
@@ -80,7 +82,7 @@ int set_terminus(int fd){
    newtio.c_lflag = 0;
 
 
-   if(link_layer.stat == TRANSMITTER){
+   if(link_layer.mode == TRANSMITTER){
      newtio.c_cc[VTIME]    = 5;   /* inter-character timer unused */
      newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
    }else{
@@ -310,45 +312,33 @@ int llread(int fd, unsigned char *packet) {
   // char *reply;
 
 
-  if(read_packet(fd, frame, &frame_length)<0){
+  if(read_frame(fd, frame, &frame_length)<0){
     printf("data_link - llread: error reading frame\n");
     exit(-1);
   }
 
+  if(!valid_frame(frame)){
+		printf("yo\n");
+	}
 
-  // if(!valid_frame(frame, frame_length){
-  //   printf("Invalid frame header. It is being rejected...\n");
-  //   reply = create_frame_US(&reply_len, REJ);
-  // }
 
   packet_length = frame_length - HEADER_SIZE;
-
-  // Check bbc 2 before destuffing
-  unsigned char bcc2;
-  unsigned char bbc2_received  = 0;
-
-  if (frame[frame_length - 3] == ESC) {
-        bcc2 = frame[frame_length - 2] ^ STUFF_BYTE;
+	
+  if (frame[frame_length - 3] == ESC)
         packet_length--;
-  }else
-    bcc2 = frame[frame_length - 2];
-
-
+  
   unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
 
-  int i;
-  for(i = 0; i < packet_length; i++){
-
-    bbc2_received ^= packet[i];
-  }
-
   memcpy(packet,destuffed , packet_length);
+
+  if(!validBCC2(packet,frame,packet_length,frame_length))
+	printf("bcc2 is not valid\n");
 
   return packet_length;
 
 }
 
-int read_packet(int fd, unsigned char *frame, int *frame_length){
+int read_frame(int fd, unsigned char *frame, int *frame_length){
 
   bool STOP = false;
   char buf;
@@ -379,27 +369,6 @@ int read_packet(int fd, unsigned char *frame, int *frame_length){
   return 0;
 }
 
-int write_packet(int fd, char *frame, int frame_length){
-
-  int total_chars = 0;
-  int written_chars = 0;
-
-  while(total_chars < frame_length){
-
-    written_chars = write(fd, frame, frame_length);
-
-    if(written_chars <= 0){
-
-      printf("Written chars: %d\n", written_chars);
-      printf("%s\n", strerror(errno));
-      return -1;
-    }
-
-    total_chars += written_chars;
-  }
-
-  return 0;
-}
 
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
@@ -424,6 +393,8 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
 int llclose(int fd){
 
+	
+
     if ( tcsetattr(fd,TCSANOW,&link_layer.portSettings) == -1) {
       perror("tcsetattr");
       exit(-1);
@@ -434,16 +405,71 @@ int llclose(int fd){
     return 0;
 
 }
-//
-// int valid_frame(char * frame, int frame_length){
-//
-//   if(frame_length < 6)
-//     return 0;
-//
-//   if(frame[0] == FLAG && frame[1] == SEND && frame[3] == (frame[1] ^ frame[2]))
-//     return 1;
-//   else return 0;
-// }
+
+bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,int frame_length){
+
+	char expected;
+ 	char actual = 0;
+
+      if (frame[frame_length - 3] == ESC) 
+        expected= frame[frame_length - 2] ^ STUFF_BYTE;
+      else
+		expected = frame[frame_length - 2];
+
+     int i;
+      for (i = 0; i < packet_length; i++)
+        actual ^= packet[i];
+
+      return(actual == expected);
+
+
+}
+
+int write_packet(int fd, char *frame, int frame_length){
+
+  int total_chars = 0;
+  int written_chars = 0;
+
+  while(total_chars < frame_length){
+
+    written_chars = write(fd, frame, frame_length);
+
+    if(written_chars <= 0){
+
+      printf("Written chars: %d\n", written_chars);
+      printf("%s\n", strerror(errno));
+      return -1;
+    }
+
+    total_chars += written_chars;
+  }
+
+  return 0;
+}
+
+ bool DISC_frame(unsigned char * reply){
+
+   return(reply[0] == FLAG &&
+      reply[1] == ((link_layer.mode == TRANSMITTER) ? RECEIVE : SEND)&&
+      reply[2] == DISC && 
+	  reply[3] == (reply[1] ^ reply[2]) &&
+      reply[4] == FLAG);
+     
+
+ }
+
+bool valid_frame(unsigned char * frame){
+
+
+   if(frame[0] == FLAG && 
+	  frame[1] == SEND && 
+	  frame[3] == (frame[1] ^ frame[2]))
+     return true;
+   else 
+	return false;
+
+
+ }
 //
 //
 // char *create_frame_US(int *frame_length, int control_byte) {
@@ -493,17 +519,8 @@ int llclose(int fd){
 // }
 
 
-//
-// int DISC_frame(char * reply){
-//
-//   if(reply[0] == FLAG &&
-//      reply[1] == ((data_link.stat == TRANSMITTER) ? SEND : RECEIVE) &&
-//      reply[2] == UA && reply[3] == (reply[1] ^ reply[2]) &&
-//      reply[4] == FLAG)
-//      return 1;
-//   else return 0;
-//
-// }
+
+
 
 //
 // int valid_seq_number(char control_byte, int s) {

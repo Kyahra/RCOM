@@ -18,7 +18,7 @@ typedef struct {
   unsigned int timeout;/*Valor do temporizador: 1 s*/
   unsigned int numTransmissions; /*Número de tentativas em caso defalha*/
   char frame[MAX_SIZE];/*Trama*/
-  status stat; /* RECEIVER || TRANSMITTER */
+  status mode; /* RECEIVER || TRANSMITTER */
   struct termios portSettings;
 }linkLayer;
 
@@ -30,27 +30,38 @@ void init_link_layer(int timeout,int numTransmissions, int baudRate);
 
 int set_terminus(int fd);
 
-int llopen(int port,status stat);
+int llopen(int port,status mode);
 int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
 
 int llwrite(int fd, char * packet, int length);
-int llread(int fd, unsigned char *packet);
-
-int llclose(int fd);
 
 char *create_frame(int *frame_len, char *packet, int packet_len);
 char *stuff_frame(char *packet, int *packet_len);
 
-int read_packet(int fd, unsigned char *frame, int *frame_length);
+
+int llread(int fd, unsigned char *packet);
+
+int read_frame(int fd, unsigned char *frame, int *frame_length);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
+
+bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,int frame_length);
+bool valid_frame(unsigned char * frame);
+
+bool DISC_frame(unsigned char * reply);
+
+int llclose(int fd);
+
+
 
 int write_packet(int fd, char *frame, int frame_length);
 
 char *create_frame_US(int *frame_length, int control_byte);
 
-int valid_frame(char * frame, int frame_length);
+
 
 bool updateState(unsigned char c,int* state,char * msg);
+
+
 
 int close_connection(int fd);

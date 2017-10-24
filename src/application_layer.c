@@ -146,7 +146,9 @@ void receive_data(){
         exit(-1);
       }
 
-      if(packet[0] == END_BYTE) break;
+      if(packet[0] == END_BYTE)
+		break;
+	
 
       // falta tratar so sequence number!!
       // não esquecer
@@ -160,8 +162,9 @@ void receive_data(){
         exit(-1);
       }
 
-
     }
+
+	llclose(app_layer.fileDescriptor);
 
 
   close(fd);
