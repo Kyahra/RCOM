@@ -233,22 +233,59 @@ int llwrite(int fd, char * packet, int length){
 
   char *frame = create_frame(&frame_length, packet, length);
 
-   if(write(fd, frame, frame_length) != frame_length){
-     printf("yo");
-     exit(-1);
-   }
+
+  //unsigned char reply[255];
+    //int reply_length;
+    count=0;
+
+
+
+    do{
+
+       if(write_information(fd,frame,frame_length)<0){
+         printf("Failed sending packet.\n");
+  return -1;
+       }
+       timedOut = false;
+       alarm(link_layer.timeout);
+
+
+
+
+
+
+}
+while(timedOut && count<link_layer.numTransmissions);
 
    return 0;
 }
 
 
-// int send_frame_I(int fd, char * frame, int packet_length){
-//
-//   char reply[255];
-//   int reply_length;
-//   count=0;
-//
-// }
+int read_answer(int fd, char *frame, int *frame_length){
+
+	
+}
+
+
+
+int write_information(int fd, char * buffer,int buf_length){
+  int total_chars = 0;
+   int chars = 0;
+
+   while (total_chars < buf_length) {
+      chars = write(fd, buffer, buf_length);
+
+     if( chars <= 0) {
+       printf("error in write");
+       return -1;
+     }
+
+     total_chars += chars;
+   }
+
+   return 0;
+ }
+
 
 char *create_frame(int *frame_len, char *packet, int packet_len){
 

@@ -34,16 +34,19 @@ int llopen(int port,status mode);
 int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
 
+int llread(int fd, unsigned char *packet);
 int llwrite(int fd, char * packet, int length);
 
 char *create_frame(int *frame_len, char *packet, int packet_len);
 char *stuff_frame(char *packet, int *packet_len);
-
-
-int llread(int fd, unsigned char *packet);
-
-int read_frame(int fd, unsigned char *frame, int *frame_length);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
+int read_frame(int fd, unsigned char *frame, int *frame_length);
+
+
+
+int write_information(int fd, char * buffer,int buf_length);
+int read_answer(int fd, char *frame, int *frame_length);
+
 
 bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,int frame_length);
 bool valid_frame(unsigned char * frame);
@@ -53,15 +56,8 @@ bool DISC_frame(unsigned char * reply);
 int llclose(int fd);
 
 
-
 int write_packet(int fd, char *frame, int frame_length);
-
-char *create_frame_US(int *frame_length, int control_byte);
-
-
 
 bool updateState(unsigned char c,int* state,char * msg);
 
 
-
-int close_connection(int fd);
