@@ -33,12 +33,11 @@ int set_terminus(int fd);
 int llopen(int port,status stat);
 int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
-
+int write_information(int fd, char * buffer,int buf_length);
 int llwrite(int fd, char * packet, int length);
 int llread(int fd, unsigned char *packet);
-
+int read_answer(int fd, char *frame, int *frame_length);
 int llclose(int fd);
-
 char *create_frame(int *frame_len, char *packet, int packet_len);
 char *stuff_frame(char *packet, int *packet_len);
 
