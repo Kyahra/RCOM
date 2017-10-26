@@ -35,12 +35,12 @@ int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
 
 int llread(int fd, unsigned char *packet);
-int llwrite(int fd, char * packet, int length);
+int llwrite(int fd,  char * packet, int length);
 
 unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len);
 unsigned char * create_Sframe(char control_byte);
 
-char *stuff_frame(char *packet, int *packet_len);
+unsigned char *stuff_frame( char *packet, int *packet_len) ;
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
 int read_frame(int fd, unsigned char *frame, int *frame_length);
 int verify_Sframe(unsigned char *response, int response_len, unsigned char C);
@@ -65,4 +65,4 @@ int llclose(int fd);
 
 int write_packet(int fd, char *frame, int frame_length);
 
-bool updateState(unsigned char c,int* state,char * msg);
+int updateState(unsigned char c,int state,char * msg);

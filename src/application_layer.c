@@ -31,8 +31,8 @@ void set_connection(char * port, char * stat){
 }
 
 void send_data(char * path, char* filename){
-  char *full_path =
-      (char *)malloc(sizeof(char) * (strlen(path) + 1 + strlen(filename)));
+   char *full_path =
+      ( char *)malloc(sizeof(char) * (strlen(path) + 1 + strlen(filename)));
 
   strcpy(full_path, path);
   strcat(full_path, "/");
@@ -73,7 +73,7 @@ void send_packets(int fd, char* filename){
           exit(-1);
       }
 
-     char data_packet[PACKET_SIZE];
+      char data_packet[PACKET_SIZE];
      int packet_size= num_chars + PACKET_HEADER_SIZE;
 
      data_packet[0] = DATA_BYTE;
@@ -93,7 +93,7 @@ void send_packets(int fd, char* filename){
 
 }
 
-void send_control_packet(int fd,char* filename,unsigned char control_byte){
+void send_control_packet(int fd, char* filename,unsigned char control_byte){
 
   struct stat info;
   fstat(fd, &info);
@@ -103,7 +103,7 @@ void send_control_packet(int fd,char* filename,unsigned char control_byte){
 
 
   int start_packet_len = 5 + sizeof(info.st_size) + filename_len;
-  char *start_packet = (char *)malloc(sizeof(char) * start_packet_len);
+  char *start_packet = ( char *)malloc(sizeof(char) * start_packet_len);
 
   start_packet[0] = control_byte;
 
@@ -113,7 +113,7 @@ void send_control_packet(int fd,char* filename,unsigned char control_byte){
 
   start_packet[3 + sizeof(info.st_size)] = FILE_NAME_BYTE;
   start_packet[4 + sizeof(info.st_size)] = filename_len;
-  strcat(start_packet + 5 + sizeof(info.st_size), filename);
+  strcat(start_packet + 5 + sizeof(info.st_size),filename);
 
   llwrite(app_layer.fileDescriptor, start_packet, start_packet_len);
 

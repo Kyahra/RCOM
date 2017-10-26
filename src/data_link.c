@@ -54,11 +54,12 @@ int llopen(int port,status mode){
     if(llopen_transmitter(fd) <0)
       return -1;
 
+
   if(mode == RECEIVER)
     if(llopen_receiver(fd) < 0)
       return -1;
 
-  link_layer.sequenceNumber =0;
+    link_layer.sequenceNumber =0;
 
   return fd;
 
@@ -109,7 +110,6 @@ int llopen_transmitter(int fd){
 
   unsigned char c;
   int state=0;
-  bool STOP = false;
 
   signal(SIGALRM, alarmHandler);
 
@@ -124,14 +124,14 @@ int llopen_transmitter(int fd){
       alarm(link_layer.timeout);
 
 
-      while ((!STOP && !timedOut)) {
+      while(state!=5 && !timedOut){
 
       if(read(fd,&c,1)==-1){
         printf("data_link - llopen: read error\n");
         exit(-1);
       }
 
-      STOP = updateState(c,&state,UA);
+      state = updateState(c,state,UA);
 
       }
 
@@ -148,17 +148,15 @@ int llopen_receiver(int fd){
 
   unsigned char c;
   int state =0;
-  bool STOP = false;
 
-
-  while(!STOP ){
+  while(state != 5 ){
 
     	if (read(fd,&c,1) == -1){
     			printf("data_link - llopen: read error\n");
     		return 1;
       }
 
-     STOP = updateState(c,&state,SET);
+     state = updateState(c,state,SET);
 
   }
 
@@ -171,76 +169,72 @@ int llopen_receiver(int fd){
 
 }
 
-bool updateState(unsigned char c,int* state,char * msg){
-printf("%x\n",c);
-printf("state:%d\n",*state);
+int updateState(unsigned char c,int state,char * msg){
 
 
   printf("%x\n",c);
-  printf("state: %d\n",*state);
-
-  switch (*state) {
+ printf("state: %d\n",state);
+  switch (state) {
       case 0:
         if(c == msg[0])
-          *state=1;
+          return 1;
 
-          break;
+        break;
 
       case 1:
-        if(c!= msg[0])
-          *state=0;
         if(c == msg[1])
-          *state=2;
+          return 2;
+
+          if(c!= msg[0])
+            return 0;
 
         break;
 
       case 2:
-        if(c!= msg[0])
-          *state =0;
-        else
-          *state =1;
         if(c == msg[2])
-          *state =3;
+          return 3;
+
+        if(c!= msg[0])
+          return 0;
+        else
+          return 1;
 
         break;
 
       case 3:
-        if(c!= msg[0])
-          *state =0;
-        if( c== msg[0])
-          *state =1;
         if( c == (msg[2]^msg[1]))
-          *state = 4;
+        return 4;
+
+        if(c!= msg[0])
+          return 0;
+        if( c== msg[0])
+          return 1;
 
         break;
 
       case 4:
         if(c != msg[0])
-          *state =0;
+          return 0;
         else
-          return true;
+          return 5;
 
         break;
 
       default:
-
         break;
 
       }
 
 
-    return false;
+    return 0;
 
 }
 
-int llwrite(int fd, char * packet, int length){
+int llwrite(int fd,  char * packet, int length){
 
     int frame_length;
 
-
     unsigned char *frame = create_Iframe(&frame_length, packet, length);
-
-
 
     count=0;
     unsigned char response[255];
@@ -249,39 +243,26 @@ int llwrite(int fd, char * packet, int length){
 
   while( count<=link_layer.numTransmissions+1) {
 
-
        if(write_information(fd,frame,frame_length)<0){
          printf("Failed sending packet.\n");
          return -1;
        }
-       //timedOut = false;
+
        alarm(link_layer.timeout);
 
-
        if(read_frame(fd,response,&response_len)==0){
-
 
          alarm(0);
               if(verify_Sframe(response,response_len,RR)){
                   link_layer.sequenceNumber =!link_layer.sequenceNumber;
-
-
-                      return 0;
-                        }
-              else if(verify_Sframe(response,response_len,REJ)){
-
-        ;
+                  return 0;
+              }else if(verify_Sframe(response,response_len,REJ))
                   count=0;
 
-                  }
+                }
+                alarm(0);
 
-}
-alarm(0);
-
-
-}
-
-
+              }
    return -1;
 }
 
@@ -290,29 +271,21 @@ alarm(0);
 
 int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
 
-
-
   if(response_len!=5){
     return 0;
-    printf("ola\n");
-}
-  else{
+  }else{
       if(response[0]==(unsigned char)FLAG &&
         response[1]==(unsigned char)RECEIVE &&
-        response[2]==(unsigned char)(link_layer.sequenceNumber << 7|C)&&
         response[3]==(unsigned char)(response[1]^response[2])&&
-        response[4] == (unsigned char)FLAG)
-          return 1;
-
+        response[4] == (unsigned char)FLAG&&
+        ((C== RR  && response[2]==(unsigned char)(!link_layer.sequenceNumber << 7|C)) ||
+        (C== REJ && response[2]==(unsigned char)(link_layer.sequenceNumber << 7|C))))
+           return 1;
         else
           return 0;
-
   }
     return 0;
 }
-
-
-
 
 
 int write_information(int fd, unsigned char * buffer,int buf_length){
@@ -335,23 +308,14 @@ int write_information(int fd, unsigned char * buffer,int buf_length){
 
 unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
 
-  unsigned char bcc2 = 0;
-
-  int i;
-  for (i = 0; i < packet_len; i++)
-    bcc2 ^= packet[i];
-
-  packet[packet_len]=bcc2;
-  packet_len++;
-
-  char *stuff_packet = stuff_frame(packet, &packet_len);
+  unsigned char *stuff_packet = stuff_frame(packet, &packet_len);
 
   *frame_len = 5 + packet_len;
   unsigned char *frame = (unsigned char *)malloc(*frame_len * sizeof(char));
 
   frame[0] = FLAG;
   frame[1] = A;
-  frame[2] = link_layer.sequenceNumber;
+  frame[2] = link_layer.sequenceNumber <<6;
   frame[3] = frame[1]^frame[2];
 
   memcpy(frame + 4, stuff_packet, packet_len);
@@ -362,27 +326,33 @@ unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
 
 }
 
-char *stuff_frame(char *packet, int *packet_len) {
+unsigned char *stuff_frame( char *packet, int *packet_len) {
 
-  char *stuffed = (char *)malloc(((*packet_len) + 256) * sizeof(char));
+  unsigned char* stuffed = (unsigned char *)malloc(256 * sizeof(char));
 
+  unsigned char bcc2 = 0;
   int i = 0;
   int j = 0;
 
-  for (; i < *packet_len; i++) {
+  for (i = 0; i < *packet_len; i++)
+    bcc2 ^= packet[i];
+
+  packet[*packet_len]=bcc2;
+  *packet_len = *packet_len +1;
+
+  for (i=0; i < *packet_len; i++) {
 
     if (packet[i] == ESC || packet[i] == FLAG) {
-
       stuffed[j] = ESC;
       stuffed[++j] = packet[i] ^ STUFF_BYTE;
 
     } else
       stuffed[j] = packet[i];
-
     j++;
   }
 
   *packet_len = j;
+
   return stuffed;
 }
 
@@ -467,9 +437,6 @@ int llread(int fd, unsigned char *packet) {
 
 }
 
-
-
-
 int read_frame(int fd, unsigned char *frame, int *frame_length){
 
   bool STOP = false;
@@ -502,7 +469,6 @@ int read_frame(int fd, unsigned char *frame, int *frame_length){
 
 }
 
-
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
   unsigned char *destuffed = (unsigned char *)malloc(((*packet_len)) * sizeof(unsigned char));
@@ -527,8 +493,8 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 int llclose(int fd){
 
 
-    char  *frame;
-    int frame_length = 0;
+    //char  *frame;
+    //int frame_length = 0;
 
     /*
 
