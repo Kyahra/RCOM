@@ -37,7 +37,9 @@ int llopen_receiver(int fd);
 int llread(int fd, unsigned char *packet);
 int llwrite(int fd, char * packet, int length);
 
-char *create_frame(int *frame_len, char *packet, int packet_len);
+char *create_Iframe(int *frame_len, char *packet, int packet_len);
+unsigned char * create_Sframe(char control_byte);
+
 char *stuff_frame(char *packet, int *packet_len);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
 int read_frame(int fd, unsigned char *frame, int *frame_length);
@@ -49,7 +51,8 @@ int read_answer(int fd, char *frame, int *frame_length);
 
 
 bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,int frame_length);
-bool valid_frame(unsigned char * frame);
+bool valid_Iframe(unsigned char * frame);
+bool valid_sequence_number(char control_byte);
 
 bool DISC_frame(unsigned char * reply);
 
@@ -59,5 +62,3 @@ int llclose(int fd);
 int write_packet(int fd, char *frame, int frame_length);
 
 bool updateState(unsigned char c,int* state,char * msg);
-
-
