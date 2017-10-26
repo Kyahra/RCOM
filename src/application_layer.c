@@ -28,6 +28,7 @@ void set_connection(char * port, char * stat){
       exit(-1);
   }
 
+
 }
 
 void send_data(char * path, char* filename){
@@ -147,7 +148,7 @@ void receive_data(){
 
       packet_length = llread(app_layer.fileDescriptor, packet);
 
-    }while(packet_length !=0);
+    }while(packet_length ==0);
 
 
       if (packet_length < 0) {
@@ -162,6 +163,7 @@ void receive_data(){
 
 
 
+	
 
       // falta tratar so sequence number!!
       // não esquecer
@@ -198,8 +200,6 @@ char* receive_start_packet(off_t* file_size){
         printf("app_layer - receive_data - receive_start_packet: error.\n");
         exit(-1);
       }
-
-      printf("packet length %d\n", packet_length);
 
   }while(packet[0] != (unsigned char)START_BYTE || packet_length==0);
 

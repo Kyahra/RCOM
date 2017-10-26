@@ -165,6 +165,7 @@ int llopen_receiver(int fd){
       exit(-1);
   }
 
+
   return 0;
 
 }
@@ -172,9 +173,14 @@ int llopen_receiver(int fd){
 int updateState(unsigned char c,int state,char * msg){
 
 
+<<<<<<< HEAD
   printf("%x\n",c);
  printf("state: %d\n",state);
   switch (state) {
+=======
+
+  switch (*state) {
+>>>>>>> d4286c881f7dc5fc27c337d43e15d6d3fda3c2dc
       case 0:
         if(c == msg[0])
           return 1;
@@ -255,12 +261,14 @@ int llwrite(int fd,  char * packet, int length){
          alarm(0);
               if(verify_Sframe(response,response_len,RR)){
                   link_layer.sequenceNumber =!link_layer.sequenceNumber;
+
                   return 0;
               }else if(verify_Sframe(response,response_len,REJ))
                   count=0;
 
                 }
                 alarm(0);
+
 
               }
    return -1;
@@ -271,9 +279,7 @@ int llwrite(int fd,  char * packet, int length){
 
 int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
 
-  if(response_len!=5){
-    return 0;
-  }else{
+
       if(response[0]==(unsigned char)FLAG &&
         response[1]==(unsigned char)RECEIVE &&
         response[3]==(unsigned char)(response[1]^response[2])&&
@@ -372,6 +378,16 @@ int llread(int fd, unsigned char *packet) {
 
   }while(!valid_Iframe(frame));
 
+unsigned char expected;
+
+
+      if (frame[frame_length - 3] == ESC)
+        expected= frame[frame_length - 2] ^ STUFF_BYTE;
+      else
+		expected = frame[frame_length - 2];
+
+
+
   // if DISC frame received init llclose
   // if (DISC_frame(frame)){
   //     if(llclose(fd)>0)
@@ -388,43 +404,39 @@ int llread(int fd, unsigned char *packet) {
         packet_length--;
 
 
-
-
-
   // destuffing frame and update packet value
   unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
   memcpy(packet,destuffed , packet_length);
 
+
   // check BB2
-  if(validBCC2(packet,frame,packet_length,frame_length)){
+  if(validBCC2(packet,packet_length,expected)){
 
 
-
-  // check for repeated frames
-
+ 	 // check for repeated frames
      if(valid_sequence_number(frame[2])){
       link_layer.sequenceNumber = !link_layer.sequenceNumber;
-      printf("valid\n");
-    }
-
-    else
+      printf("valid sequence number\n");
+    }else{
+	  printf("invalid sequence number\n");
       packet_length=0; // found duplicate
 
+	}
       reply = create_Sframe(RR);
 
   }else{
 
-    	printf("bcc2 is not valid\n");
+ 	printf("invalid BCC2\n");
 
-  // check for repeated frames
-    if (valid_sequence_number(frame[2])) {
-          reply = create_Sframe(RR);
-        } else
+	// invalid BCC2
+  	// check for repeated frames
+    if (valid_sequence_number(frame[2]))
+          reply = create_Sframe(REJ);
+         else
           reply = create_Sframe(RR);
 
 
         packet_length =0;
-
 
  }
 
@@ -432,6 +444,8 @@ int llread(int fd, unsigned char *packet) {
        printf("data_link - llread: write error\n");
        return -1;
    }
+
+  printf("pl - %d\n",packet_length);
 
   return packet_length;
 
@@ -492,11 +506,12 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
 int llclose(int fd){
 
+/*
 
     //char  *frame;
     //int frame_length = 0;
 
-    /*
+
 
     if(link_layer.stat == RECEIVER){
 
@@ -552,22 +567,15 @@ int llclose(int fd){
 
 }
 
-bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,int frame_length){
+bool validBCC2(unsigned char * packet,int packet_length, unsigned char expected){
 
-	char expected;
- 	char actual = 0;
-
-      if (frame[frame_length - 3] == ESC)
-        expected= frame[frame_length - 2] ^ STUFF_BYTE;
-      else
-		expected = frame[frame_length - 2];
+ 	unsigned char actual = 0;
 
      int i;
       for (i = 0; i < packet_length; i++)
         actual ^= packet[i];
 
       return(actual == expected);
-
 
 }
 
@@ -636,5 +644,5 @@ unsigned char * create_Sframe(char control_byte){
 }
 
 bool valid_sequence_number(char control_byte) {
-  return (control_byte == (link_layer.sequenceNumber << 7));
+  return (control_byte == (link_layer.sequenceNumber << 6));
 }
