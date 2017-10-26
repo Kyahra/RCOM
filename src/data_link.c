@@ -247,9 +247,6 @@ int llwrite(int fd, char * packet, int length){
     int response_len;
 
 
-    //bool STOP= false;
-
-    printf("frame:%x\n",frame);
   while( count<=link_layer.numTransmissions+1) {
 
 
@@ -350,7 +347,7 @@ unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
   char *stuff_packet = stuff_frame(packet, &packet_len);
 
   *frame_len = 5 + packet_len;
-  char *frame = (char *)malloc(*frame_len * sizeof(char));
+  unsigned char *frame = (unsigned char *)malloc(*frame_len * sizeof(char));
 
   frame[0] = FLAG;
   frame[1] = A;
