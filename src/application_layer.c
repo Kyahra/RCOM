@@ -49,6 +49,8 @@ void send_data(char * path, char* filename){
   send_control_packet(fd,filename, END_BYTE);
 
 
+
+
 }
 
 void send_packets(int fd, char* filename){
@@ -140,7 +142,13 @@ void receive_data(){
   int packet_length;
 
   while(true){
+
+    do{
+
       packet_length = llread(app_layer.fileDescriptor, packet);
+
+    }while(packet_length !=0);
+
 
       if (packet_length < 0) {
         printf("app_layer - receive_data: error llread\n");
@@ -148,8 +156,11 @@ void receive_data(){
         exit(-1);
       }
 
+
       if(packet[0] == END_BYTE)
 		break;
+
+
 
 
       // falta tratar so sequence number!!
@@ -166,7 +177,7 @@ void receive_data(){
 
     }
 
-	llclose(app_layer.fileDescriptor);
+
 
 
   close(fd);
@@ -182,17 +193,19 @@ char* receive_start_packet(off_t* file_size){
   do {
 
     packet_length = llread(app_layer.fileDescriptor, packet);
+
       if ( packet_length <0) {
         printf("app_layer - receive_data - receive_start_packet: error.\n");
         exit(-1);
       }
 
+      printf("packet length %d\n", packet_length);
 
-  } while (packet[0] != (unsigned char)START_BYTE);
+  }while(packet[0] != (unsigned char)START_BYTE || packet_length==0);
+
+
 
   int i;
-
-
   // get file size
   i = 1;
   while (i < packet_length) {
@@ -203,6 +216,8 @@ char* receive_start_packet(off_t* file_size){
 
     i += 2 + packet[i + 1];
   }
+
+
 
   // get file name
   i = 1;
@@ -216,6 +231,10 @@ char* receive_start_packet(off_t* file_size){
 
     i += 2 + packet[i + 1];
   }
+
+
+
+
 
   return NULL;
 

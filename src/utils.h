@@ -36,7 +36,7 @@
 #define RR 0x05
 #define REJ 0x01
 
-#define US_FRAME_LENGTH 5
+#define S_FRAME_LENGTH 5
 
 
 

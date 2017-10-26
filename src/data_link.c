@@ -175,6 +175,10 @@ bool updateState(unsigned char c,int* state,char * msg){
 printf("%x\n",c);
 printf("state:%d\n",*state);
 
+
+  printf("%x\n",c);
+  printf("state: %d\n",*state);
+
   switch (*state) {
       case 0:
         if(c == msg[0])
@@ -233,7 +237,9 @@ int llwrite(int fd, char * packet, int length){
 
     int frame_length;
 
+
     unsigned char *frame = create_frame(&frame_length, packet, length);
+
 
 
     count=0;
@@ -282,6 +288,7 @@ alarm(0);
 
 
 
+
 int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
 
 
@@ -323,12 +330,11 @@ int write_information(int fd, char * buffer,int buf_length){
 
      total_chars += chars;
    }
-
    return 0;
  }
 
 
-char *create_frame(int *frame_len, char *packet, int packet_len){
+char *create_Iframe(int *frame_len, char *packet, int packet_len){
 
   unsigned char bcc2 = 0;
 
@@ -384,33 +390,79 @@ char *stuff_frame(char *packet, int *packet_len) {
 int llread(int fd, unsigned char *packet) {
 
   unsigned char frame[MAX_SIZE];
+  unsigned char * reply;
   int frame_length;
   int packet_length;
-  // int reply_length;
-  // char *reply;
 
+  do{
 
   if(read_frame(fd, frame, &frame_length)<0){
     printf("data_link - llread: error reading frame\n");
     exit(-1);
-  }
+    }
 
-  if(!valid_frame(frame)){
-		printf("yo\n");
-	}
+  }while(!valid_Iframe(frame));
 
+  // if DISC frame received init llclose
+  // if (DISC_frame(frame)){
+  //     if(llclose(fd)>0)
+  //       return 0;
+  //     else
+  //       return -1;
+  // }
 
+  // seeting actual packet size
   packet_length = frame_length - HEADER_SIZE;
+
 
   if (frame[frame_length - 3] == ESC)
         packet_length--;
 
-  unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
 
+
+
+
+  // destuffing frame and update packet value
+  unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
   memcpy(packet,destuffed , packet_length);
 
-  if(!validBCC2(packet,frame,packet_length,frame_length))
-	printf("bcc2 is not valid\n");
+  // check BB2
+  if(validBCC2(packet,frame,packet_length,frame_length)){
+
+
+
+  // check for repeated frames
+
+     if(valid_sequence_number(frame[2])){
+      link_layer.sequenceNumber = !link_layer.sequenceNumber;
+      printf("valid\n");
+    }
+
+    else
+      packet_length=0; // found duplicate
+
+      reply = create_Sframe(RR);
+
+  }else{
+
+    	printf("bcc2 is not valid\n");
+
+  // check for repeated frames
+    if (valid_sequence_number(frame[2])) {
+          reply = create_Sframe(RR);
+        } else
+          reply = create_Sframe(RR);
+
+
+        packet_length =0;
+
+
+ }
+
+  if(write(fd, reply, S_FRAME_LENGTH) !=  S_FRAME_LENGTH) {
+       printf("data_link - llread: write error\n");
+       return -1;
+   }
 
   return packet_length;
 
@@ -448,6 +500,7 @@ int read_frame(int fd, unsigned char *frame, int *frame_length){
   }
 
   return 0;
+
 }
 
 
@@ -473,6 +526,7 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 }
 
 int llclose(int fd){
+
 
     char  *frame;
     int frame_length = 0;
@@ -519,6 +573,7 @@ int llclose(int fd){
       }
 
     }*/
+
 
 
     if ( tcsetattr(fd,TCSANOW,&link_layer.portSettings) == -1) {
@@ -578,94 +633,43 @@ int write_packet(int fd, char *frame, int frame_length){
    return(reply[0] == FLAG &&
       reply[1] == ((link_layer.mode == TRANSMITTER) ? RECEIVE : SEND)&&
       reply[2] == DISC &&
+
 	  reply[3] == (reply[1] ^ reply[2]) &&
       reply[4] == FLAG);
 
 
+
+
  }
 
-bool valid_frame(unsigned char * frame){
-
+bool valid_Iframe(unsigned char * frame){
 
    if(frame[0] == FLAG &&
 	  frame[1] == SEND &&
 	  frame[3] == (frame[1] ^ frame[2]))
+
      return true;
+
    else
 	return false;
 
 
  }
-//
-//
-// char *create_frame_US(int *frame_length, int control_byte) {
-//
-//   static char r = 0;
-//   char *buf = (char *)malloc(US_FRAME_LENGTH * sizeof(char));
-//   buf[0] = FLAG;
-//
-//   if(data_link.stat == TRANSMITTER) {
-//
-//     if(control_byte == SET || control_byte == DISC)
-//       buf[1] = SEND;
-//     else
-//       buf[1] = RECEIVE;
-//   }
-//   else {
-//
-//     if(control_byte == RR || control_byte == REJ || control_byte == UA)
-//       buf[1] = SEND;
-//     else
-//       buf[1] = RECEIVE;
-//   }
-//
-//   if(control_byte == RR ||  control_byte == REJ) {
-//
-//     buf[2] = r << 7 | control_byte;
-//     r = !r;
-//   }
-//   else buf[2] = control_byte;
-//
-//   buf[3] = buf[1] ^ buf[2];
-//   buf[4] = FLAG;
-//   *frame_length = US_FRAME_LENGTH;
-//
-//   return buf;
-//
-// }
 
-// int UA_frame(char *reply) {
-//
-//   if(reply[0] == FLAG &&
-//      reply[1] == ((data_link.stat == TRANSMITTER) ? SEND : RECEIVE) &&
-//      reply[2] == UA && reply[3] == (reply[1] ^ reply[2]) &&
-//      reply[4] == FLAG)
-//     return 1;
-//   else return 0;
-// }
+unsigned char * create_Sframe(char control_byte){
+  unsigned char * reply =(unsigned char *)malloc(S_FRAME_LENGTH * sizeof(char));
+
+  reply[0] = FLAG;
+  reply[1] = RECEIVE;
+  reply[2] = (link_layer.sequenceNumber << 7) | control_byte;
+  reply[3] = reply[1]^reply[2];
+  reply[4] = FLAG;
 
 
 
+  return reply;
+}
 
-
-//
-// int valid_seq_number(char control_byte, int s) {
-//
-//   return (control_byte == (s << 6));
-// }
-
-
-// int close_connection(int fd) {
-//
-//   int frame_length = 0;
-//   char *frame = create_frame_US(&frame_length, DISC);
-//
-//    TODO: send_frame_US
-//   if(send_frame_US(fd, frame, frame_length, UA_frame) != 0){
-//     printf("Not able to send frame on llclose().\n");
-//     return -1;
-//   }
-//
-//   return 0;
-//
-// }
+bool valid_sequence_number(char control_byte) {
+  return (control_byte == (link_layer.sequenceNumber << 7));
+}
