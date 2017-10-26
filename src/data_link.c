@@ -47,7 +47,7 @@ int llopen(int port,status mode){
     printf("data_link - llopen() - set_terminus: error\n");
     return -1;
   }
-	
+
   link_layer.mode = mode;
 
   if(mode == TRANSMITTER)
@@ -172,6 +172,8 @@ int llopen_receiver(int fd){
 }
 
 bool updateState(unsigned char c,int* state,char * msg){
+printf("%x\n",c);
+printf("state:%d\n",*state);
 
   switch (*state) {
       case 0:
@@ -229,47 +231,86 @@ bool updateState(unsigned char c,int* state,char * msg){
 
 int llwrite(int fd, char * packet, int length){
 
-  int frame_length;
+    int frame_length;
 
-  char *frame = create_frame(&frame_length, packet, length);
+    unsigned char *frame = create_frame(&frame_length, packet, length);
 
 
-  //unsigned char reply[255];
-    //int reply_length;
     count=0;
+    unsigned char response[255];
+    int response_len;
 
 
+    //bool STOP= false;
 
-    do{
+    printf("frame:%x\n",frame);
+  while( count<=link_layer.numTransmissions+1) {
+
 
        if(write_information(fd,frame,frame_length)<0){
          printf("Failed sending packet.\n");
-  return -1;
+         return -1;
        }
-       timedOut = false;
+       //timedOut = false;
        alarm(link_layer.timeout);
 
 
+       if(read_frame(fd,response,&response_len)==0){
+        // printf("%p\n",(void*)response);
 
+         alarm(0);
+              if(verify_Sframe(response,response_len,RR)){
+                  link_layer.sequenceNumber =!link_layer.sequenceNumber;
+                    printf("%x\n",response);
+                      return 0;
+                        }
+              else if(verify_Sframe(response,response_len,REJ)){
+                //printf("ola1\n");
+                  count=0;
 
+                  }
+
+}
+alarm(0);
 
 
 }
-while(timedOut && count<link_layer.numTransmissions);
 
-   return 0;
+
+   return -1;
 }
 
 
-int read_answer(int fd, char *frame, int *frame_length){
 
-	
+int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
+
+
+
+  if(response_len!=5){
+    return 0;
+    printf("ola\n");
 }
+  else{
+      if(response[0]==(unsigned char)FLAG &&
+        response[1]==(unsigned char)RECEIVE &&
+        response[2]==(unsigned char)(link_layer.sequenceNumber << 7|C)&&
+        response[3]==(unsigned char)(response[1]^response[2])&&
+        response[4] == (unsigned char)FLAG)
+          return 1;
+
+        else
+          return 0;
+
+  }
+    return 0;
+}
+
+
 
 
 
 int write_information(int fd, char * buffer,int buf_length){
-  int total_chars = 0;
+   int total_chars = 0;
    int chars = 0;
 
    while (total_chars < buf_length) {
@@ -360,10 +401,10 @@ int llread(int fd, unsigned char *packet) {
 
 
   packet_length = frame_length - HEADER_SIZE;
-	
+
   if (frame[frame_length - 3] == ESC)
         packet_length--;
-  
+
   unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
 
   memcpy(packet,destuffed , packet_length);
@@ -374,6 +415,9 @@ int llread(int fd, unsigned char *packet) {
   return packet_length;
 
 }
+
+
+
 
 int read_frame(int fd, unsigned char *frame, int *frame_length){
 
@@ -430,7 +474,52 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
 int llclose(int fd){
 
-	
+    char  *frame;
+    int frame_length = 0;
+
+    /*
+
+    if(link_layer.stat == RECEIVER){
+
+      char message[256];
+      int message_length = 0;
+
+      if(read_frame(fd, message, &message_length) != 0){
+        printf("Couldn't read frame on llclose()\n");
+        //reset_settings
+        return -1;
+      }
+
+      if(DISC_frame(message)){
+        close_connection(fd);
+      }
+
+      if(reset_settings(fd) == 0){
+        printf("Connection succesfully closed\n");
+      }
+
+      return 0;
+
+
+    }
+    else{
+
+      frame = create_frame_US(&frame_length, DISC);
+
+      if(send_frame_US(fd, frame, frame_length, DISC_frame)!= 0){
+        printf("Couldn't send frame on llclose().\n");
+        //reset_settings(fd);  TODO:
+        return -1;
+      }
+
+      if(write_packet(fd, create_frame_US(&frame_length, UA), frame_length)!= 0){
+        printf("Couldn't write the packet on llclose()\n");
+        //reset_settings(fd); TODO:
+        return -1;
+      }
+
+    }*/
+
 
     if ( tcsetattr(fd,TCSANOW,&link_layer.portSettings) == -1) {
       perror("tcsetattr");
@@ -448,7 +537,7 @@ bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,in
 	char expected;
  	char actual = 0;
 
-      if (frame[frame_length - 3] == ESC) 
+      if (frame[frame_length - 3] == ESC)
         expected= frame[frame_length - 2] ^ STUFF_BYTE;
       else
 		expected = frame[frame_length - 2];
@@ -488,21 +577,21 @@ int write_packet(int fd, char *frame, int frame_length){
 
    return(reply[0] == FLAG &&
       reply[1] == ((link_layer.mode == TRANSMITTER) ? RECEIVE : SEND)&&
-      reply[2] == DISC && 
+      reply[2] == DISC &&
 	  reply[3] == (reply[1] ^ reply[2]) &&
       reply[4] == FLAG);
-     
+
 
  }
 
 bool valid_frame(unsigned char * frame){
 
 
-   if(frame[0] == FLAG && 
-	  frame[1] == SEND && 
+   if(frame[0] == FLAG &&
+	  frame[1] == SEND &&
 	  frame[3] == (frame[1] ^ frame[2]))
      return true;
-   else 
+   else
 	return false;
 
 

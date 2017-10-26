@@ -1,3 +1,5 @@
+
+
 #include "application_layer.h"
 
 
@@ -148,7 +150,7 @@ void receive_data(){
 
       if(packet[0] == END_BYTE)
 		break;
-	
+
 
       // falta tratar so sequence number!!
       // não esquecer

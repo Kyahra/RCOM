@@ -41,7 +41,7 @@ char *create_frame(int *frame_len, char *packet, int packet_len);
 char *stuff_frame(char *packet, int *packet_len);
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
 int read_frame(int fd, unsigned char *frame, int *frame_length);
-
+int verify_Sframe(unsigned char *response, int response_len, unsigned char C);
 
 
 int write_information(int fd, char * buffer,int buf_length);
@@ -50,7 +50,7 @@ int read_answer(int fd, char *frame, int *frame_length);
 
 bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,int frame_length);
 bool valid_frame(unsigned char * frame);
-
+int read_answer(int fd, char *frame, int *frame_length);
 bool DISC_frame(unsigned char * reply);
 
 int llclose(int fd);
@@ -59,5 +59,3 @@ int llclose(int fd);
 int write_packet(int fd, char *frame, int frame_length);
 
 bool updateState(unsigned char c,int* state,char * msg);
-
-

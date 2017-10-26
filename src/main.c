@@ -24,8 +24,9 @@ int main(int argc, char** argv){
    char path[] = ".";
    char filename[] = "pinguim.gif"  ;
 
-   if(strcmp(argv[2],"T")==0)
+   if(strcmp(argv[2],"T")==0){
     send_data(path,filename);
+   }
    else
     receive_data();
    return 0;
