@@ -43,8 +43,6 @@ void send_data(char * path, char* filename){
    }
 
   send_control_packet(fd,filename, START_BYTE);
-
-   printf("yo1\n");
   send_packets(fd,filename);
   send_control_packet(fd,filename, END_BYTE);
 
@@ -137,8 +135,6 @@ void receive_data(){
     exit(-1);
    }
 
-       printf("yo\n");
-
 
   unsigned char packet[PACKET_SIZE];
   int packet_length;
@@ -147,16 +143,9 @@ void receive_data(){
 
     do{
 
-
-            printf("0%d\n",packet_length);
       packet_length = llread(app_layer.fileDescriptor, packet);
 
-      printf("1%d\n",packet_length);
-
     }while(packet_length !=0);
-
-    printf("2%d\n",packet_length);
-
 
 
       if (packet_length < 0) {
@@ -167,7 +156,7 @@ void receive_data(){
 
       // llclose called
 
-      printf("%d\n",packet_length);
+
 
       if(packet[0]==END_BYTE)
           break;
@@ -203,14 +192,14 @@ char* receive_start_packet(off_t* file_size){
 
     packet_length = llread(app_layer.fileDescriptor, packet);
 
-
       if ( packet_length <0) {
         printf("app_layer - receive_data - receive_start_packet: error.\n");
         exit(-1);
       }
 
+      printf("packet length %d\n", packet_length);
 
-  }while (packet[0] != (unsigned char)START_BYTE);
+  }while(packet[0] != (unsigned char)START_BYTE || packet_length==0);
 
 
 
@@ -241,7 +230,7 @@ char* receive_start_packet(off_t* file_size){
     i += 2 + packet[i + 1];
   }
 
-     printf("yo3\n");
+
 
 
 

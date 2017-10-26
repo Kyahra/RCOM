@@ -366,6 +366,8 @@ int llread(int fd, unsigned char *packet) {
   if (frame[frame_length - 3] == ESC)
         packet_length--;
 
+
+
   // destuffing frame and update packet value
   unsigned char *destuffed = destuff_frame(frame+4, &packet_length);
   memcpy(packet,destuffed , packet_length);
@@ -373,10 +375,15 @@ int llread(int fd, unsigned char *packet) {
   // check BB2
   if(validBCC2(packet,frame,packet_length,frame_length)){
 
+
+
   // check for repeated frames
 
-     if(valid_sequence_number(frame[2]))
+     if(valid_sequence_number(frame[2])){
       link_layer.sequenceNumber = !link_layer.sequenceNumber;
+      printf("valid\n");
+    }
+
     else
       packet_length=0; // found duplicate
 
@@ -388,7 +395,7 @@ int llread(int fd, unsigned char *packet) {
 
   // check for repeated frames
     if (valid_sequence_number(frame[2])) {
-          reply = create_Sframe(REJ);
+          reply = create_Sframe(RR);
         } else
           reply = create_Sframe(RR);
 
@@ -549,9 +556,11 @@ unsigned char * create_Sframe(char control_byte){
   reply[3] = reply[1]^reply[2];
   reply[4] = FLAG;
 
+
+
   return reply;
 }
 
 bool valid_sequence_number(char control_byte) {
-  return (control_byte == (link_layer.sequenceNumber << 6));
+  return (control_byte == (link_layer.sequenceNumber << 7));
 }
