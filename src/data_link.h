@@ -51,7 +51,7 @@ int read_answer(int fd, char *frame, int *frame_length);
 
 bool valid_Iframe(unsigned char * frame);
 bool valid_sequence_number(char control_byte);
-bool validBCC2(unsigned char * packet,unsigned char * frame,int packet_length,int frame_length);
+bool validBCC2(unsigned char * packet,int packet_length,unsigned char expected);
 
 int read_answer(int fd, char *frame, int *frame_length);
 
