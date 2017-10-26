@@ -238,7 +238,7 @@ int llwrite(int fd, char * packet, int length){
     int frame_length;
 
 
-    unsigned char *frame = create_frame(&frame_length, packet, length);
+    unsigned char *frame = create_Iframe(&frame_length, packet, length);
 
 
 
@@ -262,16 +262,18 @@ int llwrite(int fd, char * packet, int length){
 
 
        if(read_frame(fd,response,&response_len)==0){
-        // printf("%p\n",(void*)response);
+
 
          alarm(0);
               if(verify_Sframe(response,response_len,RR)){
                   link_layer.sequenceNumber =!link_layer.sequenceNumber;
-                    printf("%x\n",response);
+
+
                       return 0;
                         }
               else if(verify_Sframe(response,response_len,REJ)){
-                //printf("ola1\n");
+
+        ;
                   count=0;
 
                   }
@@ -316,7 +318,7 @@ int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
 
 
 
-int write_information(int fd, char * buffer,int buf_length){
+int write_information(int fd, unsigned char * buffer,int buf_length){
    int total_chars = 0;
    int chars = 0;
 
@@ -334,7 +336,7 @@ int write_information(int fd, char * buffer,int buf_length){
  }
 
 
-char *create_Iframe(int *frame_len, char *packet, int packet_len){
+unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
 
   unsigned char bcc2 = 0;
 
