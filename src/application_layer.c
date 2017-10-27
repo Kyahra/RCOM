@@ -6,10 +6,10 @@
 void set_connection(char * port, char * stat){
 
   if(strcmp(port,COM1_PORT)==0)
-     app_layer.port = COM1;
+  app_layer.port = COM1;
 
   if(strcmp(port,COM2_PORT)== 0)
-     app_layer.port =COM2;
+  app_layer.port =COM2;
 
   if(strcmp(stat,"T")==0){
     app_layer.mode = TRANSMITTER;
@@ -24,16 +24,16 @@ void set_connection(char * port, char * stat){
   app_layer.fileDescriptor = llopen(app_layer.port,app_layer.mode);
 
   if(app_layer.fileDescriptor< 0){
-      printf("app_layer - set_connection(): invalid file descriptor\n");
-      exit(-1);
+    printf("app_layer - set_connection(): invalid file descriptor\n");
+    exit(-1);
   }
 
-
+  
 }
 
 void send_data(char * path, char* filename){
-   char *full_path =
-      ( char *)malloc(sizeof(char) * (strlen(path) + 1 + strlen(filename)));
+  char *full_path =
+  ( char *)malloc(sizeof(char) * (strlen(path) + 1 + strlen(filename)));
 
   strcpy(full_path, path);
   strcat(full_path, "/");
@@ -43,7 +43,7 @@ void send_data(char * path, char* filename){
   if (fd <0) {
     printf("app_layer - send_data: invalid file decriptor\n");
     exit(-1);
-   }
+  }
 
   send_control_packet(fd,filename, START_BYTE);
   send_packets(fd,filename);
@@ -66,29 +66,29 @@ void send_packets(int fd, char* filename){
   int i = 0;
   off_t bytes_to_read = file_size;
 
-    while(bytes_to_read>0){
-      int num_chars=read(fd,data,DATA_PACKET_SIZE);
+  while(bytes_to_read>0){
+    int num_chars=read(fd,data,DATA_PACKET_SIZE);
 
-      if(num_chars <0){
-          printf("app_layer - send_packets: error reading data\n" );
-          exit(-1);
-      }
-
-      char data_packet[PACKET_SIZE];
-     int packet_size= num_chars + PACKET_HEADER_SIZE;
-
-     data_packet[0] = DATA_BYTE;
-     data_packet[1] = i % 256;
-     data_packet[2] = 0;
-     data_packet[3] = num_chars;
-
-     memcpy(data_packet +PACKET_HEADER_SIZE,data,num_chars);
-
-     llwrite(app_layer.fileDescriptor,data_packet,packet_size);
-     bytes_to_read -= num_chars;
-        i++;
-
+    if(num_chars <0){
+      printf("app_layer - send_packets: error reading data\n" );
+      exit(-1);
     }
+
+    char data_packet[PACKET_SIZE];
+    int packet_size= num_chars + PACKET_HEADER_SIZE;
+
+    data_packet[0] = DATA_BYTE;
+    data_packet[1] = i % 256;
+    data_packet[2] = 0;
+    data_packet[3] = num_chars;
+
+    memcpy(data_packet +PACKET_HEADER_SIZE,data,num_chars);
+
+    llwrite(app_layer.fileDescriptor,data_packet,packet_size);
+    bytes_to_read -= num_chars;
+    i++;
+
+  }
 
 
 
@@ -136,7 +136,7 @@ void receive_data(){
   if (fd <0) {
     printf("app_layer - receive_data: invalid file descriptor\n");
     exit(-1);
-   }
+  }
 
 
   unsigned char packet[PACKET_SIZE];
@@ -151,33 +151,33 @@ void receive_data(){
     }while(packet_length ==0);
 
 
-      if (packet_length < 0) {
-        printf("app_layer - receive_data: error llread\n");
-        close(fd);
-        exit(-1);
-      }
-
-
-      if(packet[0] == END_BYTE)
-		break;
-
-
-
-	
-
-      // falta tratar so sequence number!!
-      // não esquecer
-
-      unsigned int data_len = packet[2] * 256 + packet[3];
-
-
-      if (write(fd, packet + 4, data_len) != data_len) {
-        printf("app_layer - receive_data: write error\n");
-        close(fd);
-        exit(-1);
-      }
-
+    if (packet_length < 0) {
+      printf("app_layer - receive_data: error llread\n");
+      close(fd);
+      exit(-1);
     }
+
+
+    if(packet[0] == END_BYTE)
+    break;
+
+
+
+
+
+    // falta tratar so sequence number!!
+    // não esquecer
+
+    unsigned int data_len = packet[2] * 256 + packet[3];
+
+
+    if (write(fd, packet + 4, data_len) != data_len) {
+      printf("app_layer - receive_data: write error\n");
+      close(fd);
+      exit(-1);
+    }
+
+  }
 
 
 
@@ -196,10 +196,10 @@ char* receive_start_packet(off_t* file_size){
 
     packet_length = llread(app_layer.fileDescriptor, packet);
 
-      if ( packet_length <0) {
-        printf("app_layer - receive_data - receive_start_packet: error.\n");
-        exit(-1);
-      }
+    if ( packet_length <0) {
+      printf("app_layer - receive_data - receive_start_packet: error.\n");
+      exit(-1);
+    }
 
   }while(packet[0] != (unsigned char)START_BYTE || packet_length==0);
 
