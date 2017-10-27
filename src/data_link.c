@@ -173,14 +173,11 @@ int llopen_receiver(int fd){
 int updateState(unsigned char c,int state,char * msg){
 
 
-<<<<<<< HEAD
+
   printf("%x\n",c);
  printf("state: %d\n",state);
   switch (state) {
-=======
 
-  switch (*state) {
->>>>>>> d4286c881f7dc5fc27c337d43e15d6d3fda3c2dc
       case 0:
         if(c == msg[0])
           return 1;
