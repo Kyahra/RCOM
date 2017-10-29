@@ -408,9 +408,7 @@ int llread(int fd, unsigned char *packet) {
     // check for repeated frames
     if(valid_sequence_number(frame[2])){
       link_layer.sequenceNumber = !link_layer.sequenceNumber;
-      printf("valid sequence number\n");
     }else{
-      printf("invalid sequence number\n");
       packet_length=0; // found duplicate
 
     }
@@ -437,8 +435,6 @@ int llread(int fd, unsigned char *packet) {
     printf("data_link - llread: write error\n");
     return -1;
   }
-
-  printf("pl - %d\n",packet_length);
 
   return packet_length;
 
@@ -638,6 +634,8 @@ int llclose_receiver(int fd){
       printf("data_link - llopen: error writting UA\n");
       return -1;
     }
+
+    state =0;
 
     while(state != 5 ){
 
