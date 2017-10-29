@@ -50,6 +50,7 @@ void send_data(char * path, char* filename){
   send_control_packet(fd,filename, END_BYTE);
 
 
+  llclose(app_layer.fileDescriptor);
 
 
 }
@@ -151,8 +152,6 @@ void receive_data(){
     }while(packet_length ==0);
 
 
-
-
     if (packet_length < 0) {
       printf("app_layer - receive_data: error llread\n");
       close(fd);
@@ -162,10 +161,6 @@ void receive_data(){
 
     if(packet[0] == END_BYTE)
     break;
-
-
-
-
 
     // falta tratar so sequence number!!
     // não esquecer
@@ -181,8 +176,7 @@ void receive_data(){
 
   }
 
-
-
+  llclose(app_layer.fileDescriptor);
 
   close(fd);
 

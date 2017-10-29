@@ -1,7 +1,8 @@
 #include "data_link.h"
 
-char SET[5] = {FLAG, A, C_SET, A ^ C_SET, FLAG};
-char UA[5] = {FLAG, A, C_UA, A ^ C_UA, FLAG};
+char SET[5] = {FLAG, A_SEND, C_SET, A_SEND ^ C_SET, FLAG};
+char UA[5] = {FLAG, A_SEND, C_UA, A_SEND ^ C_UA, FLAG};
+char DISC[5] ={FLAG, A_SEND, C_DISC, A_SEND ^ C_DISC, FLAG};
 
 bool timedOut=false;
 int count=0;
@@ -250,7 +251,6 @@ int llwrite(int fd,  char * packet, int length){
       return -1;
     }
 
-
     timedOut = false;
     alarm(link_layer.timeout);
 
@@ -282,16 +282,13 @@ int llwrite(int fd,  char * packet, int length){
 
 }
 
-
-
-
 bool valid_Sframe(unsigned char *response, int response_len, unsigned char C){
 
   if(response_len <5)
     return false;
 
   if(response[0]==(unsigned char)FLAG &&
-  response[1]==(unsigned char)RECEIVE &&
+  response[1]==(unsigned char)A_SEND &&
   response[3]==(unsigned char)(response[1]^response[2])&&
   response[4] == (unsigned char)FLAG&&
   ((C== RR  && response[2]==(unsigned char)(!link_layer.sequenceNumber << 7|C)) ||
@@ -300,8 +297,6 @@ bool valid_Sframe(unsigned char *response, int response_len, unsigned char C){
   else
   return false;
 }
-
-
 
 int write_packet(int fd, unsigned char * buffer,int buf_length){
   int total_chars = 0;
@@ -320,7 +315,6 @@ int write_packet(int fd, unsigned char * buffer,int buf_length){
   return 0;
 }
 
-
 unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
 
   unsigned char *stuff_packet = stuff_frame(packet, &packet_len);
@@ -329,7 +323,7 @@ unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
   unsigned char *frame = (unsigned char *)malloc(*frame_len * sizeof(char));
 
   frame[0] = FLAG;
-  frame[1] = A;
+  frame[1] = A_SEND;
   frame[2] = link_layer.sequenceNumber <<6;
   frame[3] = frame[1]^frame[2];
 
@@ -384,14 +378,6 @@ int llread(int fd, unsigned char *packet) {
        exit(-1);
      }
 
-    int j;
-    for(j=0; j <frame_length;j++)
-      printf("%x - ",frame[j]);
-
-      printf("\n------------\n");
-
-    printf("reading frame\n");
-
   }while(!valid_Iframe(frame));
 
   unsigned char expected;
@@ -401,16 +387,6 @@ int llread(int fd, unsigned char *packet) {
   expected= frame[frame_length - 2] ^ STUFF_BYTE;
   else
   expected = frame[frame_length - 2];
-
-
-
-  // if DISC frame received init llclose
-  // if (DISC_frame(frame)){
-  //     if(llclose(fd)>0)
-  //       return 0;
-  //     else
-  //       return -1;
-  // }
 
   // seeting actual packet size
   packet_length = frame_length - HEADER_SIZE;
@@ -524,22 +500,6 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
   return destuffed;
 }
 
-int llclose(int fd){
-
-
-
-
-
-if ( tcsetattr(fd,TCSANOW,&link_layer.portSettings) == -1) {
-  perror("tcsetattr");
-  exit(-1);
-}
-
-close(fd);
-
-return 0;
-
-}
 
 bool validBCC2(unsigned char * packet,int packet_length, unsigned char expected){
 
@@ -557,21 +517,17 @@ bool validBCC2(unsigned char * packet,int packet_length, unsigned char expected)
 bool DISC_frame(unsigned char * reply){
 
   return(reply[0] == FLAG &&
-    reply[1] == ((link_layer.mode == TRANSMITTER) ? RECEIVE : SEND)&&
-    reply[2] == DISC &&
-
+    reply[1] == ((link_layer.mode == TRANSMITTER) ? A_RECEIVE : A_SEND)&&
+    reply[2] == C_DISC &&
     reply[3] == (reply[1] ^ reply[2]) &&
     reply[4] == FLAG);
-
-
-
 
   }
 
   bool valid_Iframe(unsigned char * frame){
 
     if(frame[0] == FLAG &&
-      frame[1] == SEND &&
+      frame[1] == A_SEND &&
       frame[3] == (frame[1] ^ frame[2]))
 
       return true;
@@ -582,11 +538,11 @@ bool DISC_frame(unsigned char * reply){
 
     }
 
-    unsigned char * create_Sframe(char control_byte){
+  unsigned char * create_Sframe(char control_byte){
       unsigned char * reply =(unsigned char *)malloc(S_FRAME_LENGTH * sizeof(char));
 
       reply[0] = FLAG;
-      reply[1] = RECEIVE;
+      reply[1] = A_SEND;
       reply[2] = (link_layer.sequenceNumber << 7) | control_byte;
       reply[3] = reply[1]^reply[2];
       reply[4] = FLAG;
@@ -599,3 +555,102 @@ bool DISC_frame(unsigned char * reply){
     bool valid_sequence_number(char control_byte) {
       return (control_byte == (link_layer.sequenceNumber << 6));
     }
+
+int llclose(int fd){
+
+
+if(link_layer.mode == TRANSMITTER)
+  if(llclose_transmitter(fd)<0)
+    return -1;
+
+if(link_layer.mode == RECEIVER)
+  if(llclose_receiver(fd)<0)
+    return -1;
+
+
+if ( tcsetattr(fd,TCSANOW,&link_layer.portSettings) == -1) {
+  perror("tcsetattr");
+  exit(-1);
+}
+
+close(fd);
+
+return 0;
+
+}
+
+
+int llclose_transmitter(int fd){
+
+  unsigned char c;
+  int state =0;
+
+  do{
+
+    if(write(fd,DISC,5) != 5){
+      printf("data_link - llclose: error writting DISC\n");
+      return -1;
+    }
+
+    timedOut = false;
+    alarm(link_layer.timeout);
+
+
+    while(state!=5 && !timedOut){
+
+      if(read(fd,&c,1)==-1){
+        printf("data_link - llclose: read error\n");
+        return -1;
+      }
+
+      state = update_state(c,state,DISC);
+
+    }
+
+  } while(timedOut && count < link_layer.numTransmissions);
+
+  if(write(fd,UA,5) != 5){
+    printf("data_link - llclose: error writting UA\n");
+    exit(-1);
+  }
+
+  return 0;
+}
+
+int llclose_receiver(int fd){
+
+
+    unsigned char c;
+    int state =0;
+
+    while(state != 5 ){
+
+      if (read(fd,&c,1) == -1){
+        printf("data_link - llopen: read error\n");
+        return -1;
+      }
+
+      state = update_state(c,state,DISC);
+
+    }
+
+    if(write(fd,DISC,5) != 5){
+      printf("data_link - llopen: error writting UA\n");
+      return -1;
+    }
+
+    while(state != 5 ){
+
+      if (read(fd,&c,1) == -1){
+        printf("data_link - llopen: read error\n");
+        return -1;
+      }
+
+      state = update_state(c,state,UA);
+
+    }
+
+
+    return 0;
+
+}

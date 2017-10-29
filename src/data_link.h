@@ -17,7 +17,6 @@ typedef struct {
   unsigned int sequenceNumber;   /*Número de sequência da trama: 0, 1*/
   unsigned int timeout;/*Valor do temporizador: 1 s*/
   unsigned int numTransmissions; /*Número de tentativas em caso defalha*/
-  char frame[MAX_SIZE];/*Trama*/
   status mode; /* RECEIVER || TRANSMITTER */
   struct termios portSettings;
 }linkLayer;
@@ -40,6 +39,8 @@ int llread(int fd, unsigned char *packet);
 int llwrite(int fd,  char * packet, int length);
 
 int llclose(int fd);
+int llclose_transmitter(int fd);
+int llclose_receiver(int fd);
 
 unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len);
 unsigned char * create_Sframe(char control_byte);

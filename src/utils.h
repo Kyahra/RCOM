@@ -9,9 +9,10 @@
 #define COM2_PORT "/dev/ttyS1"
 
 #define FLAG 0x7e
-#define A 0x03
+
 #define C_SET 0x03
 #define C_UA 0x07
+#define C_DISC 0x0B
 
 #define DATA_BYTE 1
 #define START_BYTE 2
@@ -30,9 +31,8 @@
 #define DATA_PACKET_SIZE PACKET_SIZE - PACKET_HEADER_SIZE
 
 
-#define SEND 0x03
-#define RECEIVE 0x01
-#define DISC 0x0B
+#define A_SEND 0x03
+#define A_RECEIVE 0x01
 #define RR 0x05
 #define REJ 0x01
 
