@@ -256,19 +256,22 @@ int llwrite(int fd,  char * packet, int length){
 
     while(!timedOut){
 
-    if(read_packet(fd,response,&response_len) <0)
-      return -1;
+    if(read_packet(fd,response,&response_len)==0){
 
-      if(valid_Sframe(response,RR)){
+      if(valid_Sframe(response,response_len,RR)){
         alarm(0);
         link_layer.sequenceNumber =!link_layer.sequenceNumber;
         return 0;
+
+
       }
 
-      if(valid_Sframe(response,REJ)){
+      if(valid_Sframe(response,response_len,REJ)){
         alarm(0);
         count=0;
         timedOut = true;
+
+        }
       }
 
     }
@@ -276,9 +279,16 @@ int llwrite(int fd,  char * packet, int length){
   }while(timedOut && count<link_layer.numTransmissions);
 
   return -1;
+
 }
 
-bool valid_Sframe(unsigned char *response,unsigned char C){
+
+
+
+bool valid_Sframe(unsigned char *response, int response_len, unsigned char C){
+
+  if(response_len <5)
+    return false;
 
   if(response[0]==(unsigned char)FLAG &&
   response[1]==(unsigned char)RECEIVE &&
@@ -290,6 +300,8 @@ bool valid_Sframe(unsigned char *response,unsigned char C){
   else
   return false;
 }
+
+
 
 int write_packet(int fd, unsigned char * buffer,int buf_length){
   int total_chars = 0;
@@ -307,6 +319,7 @@ int write_packet(int fd, unsigned char * buffer,int buf_length){
   }
   return 0;
 }
+
 
 unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
 
@@ -513,53 +526,7 @@ unsigned char *destuff_frame(unsigned char *packet,  int *packet_len){
 
 int llclose(int fd){
 
-  /*
 
-  //char  *frame;
-  //int frame_length = 0;
-
-
-
-  if(link_layer.stat == RECEIVER){
-
-  char message[256];
-  int message_length = 0;
-
-  if(read_frame(fd, message, &message_length) != 0){
-  printf("Couldn't read frame on llclose()\n");
-  //reset_settings
-  return -1;
-}
-
-if(DISC_frame(message)){
-close_connection(fd);
-}
-
-if(reset_settings(fd) == 0){
-printf("Connection succesfully closed\n");
-}
-
-return 0;
-
-
-}
-else{
-
-frame = create_frame_US(&frame_length, DISC);
-
-if(send_frame_US(fd, frame, frame_length, DISC_frame)!= 0){
-printf("Couldn't send frame on llclose().\n");
-//reset_settings(fd);  TODO:
-return -1;
-}
-
-if(write_packet(fd, create_frame_US(&frame_length, UA), frame_length)!= 0){
-printf("Couldn't write the packet on llclose()\n");
-//reset_settings(fd); TODO:
-return -1;
-}
-
-}*/
 
 
 
@@ -585,6 +552,7 @@ bool validBCC2(unsigned char * packet,int packet_length, unsigned char expected)
   return(actual == expected);
 
 }
+
 
 bool DISC_frame(unsigned char * reply){
 

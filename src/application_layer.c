@@ -235,10 +235,6 @@ char* receive_start_packet(off_t* file_size){
   }
 
 
-
-
-
   return NULL;
-
 
 }
