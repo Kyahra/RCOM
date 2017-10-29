@@ -132,7 +132,7 @@ int llopen_transmitter(int fd){
         exit(-1);
       }
 
-      state = updateState(c,state,UA);
+      state = update_state(c,state,UA);
 
     }
 
@@ -157,7 +157,7 @@ int llopen_receiver(int fd){
       return 1;
     }
 
-    state = updateState(c,state,SET);
+    state = update_state(c,state,SET);
 
   }
 
@@ -171,7 +171,7 @@ int llopen_receiver(int fd){
 
 }
 
-int updateState(unsigned char c,int state,char * msg){
+int update_state(unsigned char c,int state,char * msg){
 
   printf("%x\n",c);
   printf("state: %d\n",state);
@@ -245,15 +245,7 @@ int llwrite(int fd,  char * packet, int length){
 
   do{
 
-    printf("sending frame\n");
-
-    int j;
-    for(j=0; j <frame_length; j++)
-      printf("%x - ", frame[j]);
-
-    printf("-------------------\n");
-
-    if(write_frame(fd,frame,frame_length)<0){
+    if(write_packet(fd,frame,frame_length)<0){
       printf("Failed sending packet.\n");
       return -1;
     }
@@ -264,35 +256,29 @@ int llwrite(int fd,  char * packet, int length){
 
     while(!timedOut){
 
-    if(read_frame(fd,response,&response_len)==0){
+    if(read_packet(fd,response,&response_len) <0)
+      return -1;
 
-      if(verify_Sframe(response,response_len,RR)){
+      if(valid_Sframe(response,RR)){
         alarm(0);
         link_layer.sequenceNumber =!link_layer.sequenceNumber;
-        printf("RR RECEIVED\n");
         return 0;
+      }
 
-
-      }else if(verify_Sframe(response,response_len,REJ)){
+      if(valid_Sframe(response,REJ)){
         alarm(0);
         count=0;
         timedOut = true;
-        printf("REJ RECEIVED\n");
-
-        }
       }
 
     }
 
   }while(timedOut && count<link_layer.numTransmissions);
 
-
+  return -1;
 }
 
-
-
-
-int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
+bool valid_Sframe(unsigned char *response,unsigned char C){
 
   if(response[0]==(unsigned char)FLAG &&
   response[1]==(unsigned char)RECEIVE &&
@@ -300,18 +286,12 @@ int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
   response[4] == (unsigned char)FLAG&&
   ((C== RR  && response[2]==(unsigned char)(!link_layer.sequenceNumber << 7|C)) ||
   (C== REJ && response[2]==(unsigned char)(link_layer.sequenceNumber << 7|C))))
-  return 1;
+  return true;
   else
-  return 0;
+  return false;
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> 9dba919e6a0e912fdb9b60f69422dc90b6d59d28
-
-
-
-int write_frame(int fd, unsigned char * buffer,int buf_length){
+int write_packet(int fd, unsigned char * buffer,int buf_length){
   int total_chars = 0;
   int chars = 0;
 
@@ -327,7 +307,6 @@ int write_frame(int fd, unsigned char * buffer,int buf_length){
   }
   return 0;
 }
-
 
 unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len){
 
@@ -387,7 +366,7 @@ int llread(int fd, unsigned char *packet) {
   int packet_length;
 
   do{
-     if(read_frame(fd, frame, &frame_length)<0){
+     if(read_packet(fd, frame, &frame_length)<0){
        printf("data_link - llread: error reading frame\n");
        exit(-1);
      }
@@ -476,7 +455,7 @@ int llread(int fd, unsigned char *packet) {
 
 }
 
-int read_frame(int fd, unsigned char *frame, int *frame_length){
+int read_packet(int fd, unsigned char *frame, int *frame_length){
 
   bool STOP = false;
   char buf;
@@ -605,28 +584,6 @@ bool validBCC2(unsigned char * packet,int packet_length, unsigned char expected)
 
   return(actual == expected);
 
-}
-
-int write_packet(int fd, char *frame, int frame_length){
-
-  int total_chars = 0;
-  int written_chars = 0;
-
-  while(total_chars < frame_length){
-
-    written_chars = write(fd, frame, frame_length);
-
-    if(written_chars <= 0){
-
-      printf("Written chars: %d\n", written_chars);
-      printf("%s\n", strerror(errno));
-      return -1;
-    }
-
-    total_chars += written_chars;
-  }
-
-  return 0;
 }
 
 bool DISC_frame(unsigned char * reply){

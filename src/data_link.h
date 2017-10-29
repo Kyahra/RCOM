@@ -29,6 +29,7 @@ linkLayer link_layer;
 void init_link_layer(int timeout,int numTransmissions, int baudRate);
 
 int set_terminus(int fd);
+int update_state(unsigned char c,int state,char * msg);
 
 int llopen(int port,status mode);
 int llopen_transmitter(int fd);
@@ -37,32 +38,21 @@ int llopen_receiver(int fd);
 int llread(int fd, unsigned char *packet);
 int llwrite(int fd,  char * packet, int length);
 
+int llclose(int fd);
+
 unsigned char *create_Iframe(int *frame_len, char *packet, int packet_len);
 unsigned char * create_Sframe(char control_byte);
 
 unsigned char *stuff_frame( char *packet, int *packet_len) ;
 unsigned char *destuff_frame(unsigned char *packet,  int *packet_len);
-int read_frame(int fd, unsigned char *frame, int *frame_length);
-int verify_Sframe(unsigned char *response, int response_len, unsigned char C);
 
+int read_packet(int fd, unsigned char *frame, int *frame_length);
+int write_packet(int fd, unsigned char * buffer,int buf_length);
 
-int write_frame(int fd, unsigned char * buffer,int buf_length);
-int read_answer(int fd, char *frame, int *frame_length);
-
+bool valid_Sframe(unsigned char *response, unsigned char C);
 bool valid_Iframe(unsigned char * frame);
 bool valid_sequence_number(char control_byte);
 bool validBCC2(unsigned char * packet,int packet_length,unsigned char expected);
 
-int read_answer(int fd, char *frame, int *frame_length);
-
-
-
 
 bool DISC_frame(unsigned char * reply);
-
-int llclose(int fd);
-
-
-int write_packet(int fd, char *frame, int frame_length);
-
-int updateState(unsigned char c,int state,char * msg);
