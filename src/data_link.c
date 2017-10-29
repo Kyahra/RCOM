@@ -5,6 +5,7 @@ char UA[5] = {FLAG, A, C_UA, A ^ C_UA, FLAG};
 
 bool timedOut=false;
 int count=0;
+bool ignore_flag= false;
 
 void alarmHandler(int sig){
   timedOut=true;
@@ -172,10 +173,9 @@ int llopen_receiver(int fd){
 
 int updateState(unsigned char c,int state,char * msg){
 
-
-
   printf("%x\n",c);
   printf("state: %d\n",state);
+
   switch (state) {
 
     case 0:
@@ -304,6 +304,10 @@ int verify_Sframe(unsigned char *response, int response_len, unsigned char C){
   else
   return 0;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9dba919e6a0e912fdb9b60f69422dc90b6d59d28
 
 
 
@@ -383,11 +387,18 @@ int llread(int fd, unsigned char *packet) {
   int packet_length;
 
   do{
+     if(read_frame(fd, frame, &frame_length)<0){
+       printf("data_link - llread: error reading frame\n");
+       exit(-1);
+     }
 
-    if(read_frame(fd, frame, &frame_length)<0){
-      printf("data_link - llread: error reading frame\n");
-      exit(-1);
-    }
+    int j;
+    for(j=0; j <frame_length;j++)
+      printf("%x - ",frame[j]);
+
+      printf("\n------------\n");
+
+    printf("reading frame\n");
 
   }while(!valid_Iframe(frame));
 
@@ -440,12 +451,13 @@ int llread(int fd, unsigned char *packet) {
   }else{
 
     printf("invalid BCC2\n");
+        ignore_flag =1;
 
     // invalid BCC2
     // check for repeated frames
-    if (valid_sequence_number(frame[2]))
+    if (valid_sequence_number(frame[2])){
     reply = create_Sframe(REJ);
-    else
+    }else
     reply = create_Sframe(RR);
 
 
@@ -474,6 +486,7 @@ int read_frame(int fd, unsigned char *frame, int *frame_length){
   while (!STOP) {
     if (read(fd, &buf, 1) >0) {
       if (buf == FLAG) {
+        if(!ignore_flag){
         flag_count++;
 
         if(flag_count == 2)
@@ -481,6 +494,8 @@ int read_frame(int fd, unsigned char *frame, int *frame_length){
 
         frame[*frame_length] = buf;
         (*frame_length)++;
+      }else
+        ignore_flag= false;
 
       }else {
         if(flag_count>0) {
