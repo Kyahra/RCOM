@@ -46,7 +46,7 @@ int read_frame(int fd, unsigned char *frame, int *frame_length);
 int verify_Sframe(unsigned char *response, int response_len, unsigned char C);
 
 
-int write_information(int fd, unsigned char * buffer,int buf_length);
+int write_frame(int fd, unsigned char * buffer,int buf_length);
 int read_answer(int fd, char *frame, int *frame_length);
 
 bool valid_Iframe(unsigned char * frame);
