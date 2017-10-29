@@ -28,7 +28,7 @@ void set_connection(char * port, char * stat){
     exit(-1);
   }
 
-  
+
 }
 
 void send_data(char * path, char* filename){
@@ -149,6 +149,8 @@ void receive_data(){
       packet_length = llread(app_layer.fileDescriptor, packet);
 
     }while(packet_length ==0);
+
+
 
 
     if (packet_length < 0) {
