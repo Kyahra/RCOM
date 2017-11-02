@@ -85,7 +85,8 @@ void send_packets(int fd, char* filename){
 
     memcpy(data_packet +PACKET_HEADER_SIZE,data,num_chars);
 
-    llwrite(app_layer.fileDescriptor,data_packet,packet_size);
+    if(llwrite(app_layer.fileDescriptor,data_packet,packet_size)==-1)
+    return;
     bytes_to_read -= num_chars;
     i++;
 
@@ -162,8 +163,7 @@ void receive_data(){
     if(packet[0] == END_BYTE)
     break;
 
-    // falta tratar so sequence number!!
-    // não esquecer
+
 
     unsigned int data_len = packet[2] * 256 + packet[3];
 

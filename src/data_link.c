@@ -10,7 +10,6 @@ bool ignore_flag= false;
 
 void alarmHandler(int sig){
   timedOut=true;
-  printf("timed out\n");
   count ++;
 }
 
@@ -63,6 +62,7 @@ int llopen(int port,status mode){
 
   link_layer.sequenceNumber =0;
 
+  printf("llopen success!\n");
   return fd;
 
 }
@@ -174,8 +174,7 @@ int llopen_receiver(int fd){
 
 int update_state(unsigned char c,int state,char * msg){
 
-  printf("%x\n",c);
-  printf("state: %d\n",state);
+
 
   switch (state) {
 
@@ -259,6 +258,7 @@ int llwrite(int fd,  char * packet, int length){
     if(read_packet(fd,response,&response_len)==0){
 
       if(valid_Sframe(response,response_len,RR)){
+        printf("RR%d\n",link_layer.sequenceNumber);
         alarm(0);
         link_layer.sequenceNumber =!link_layer.sequenceNumber;
         return 0;
@@ -267,6 +267,7 @@ int llwrite(int fd,  char * packet, int length){
       }
 
       if(valid_Sframe(response,response_len,REJ)){
+        printf("REJ%d\n",link_layer.sequenceNumber);
         alarm(0);
         count=0;
         timedOut = true;
