@@ -86,7 +86,7 @@ void send_packets(int fd, char* filename){
     memcpy(data_packet +PACKET_HEADER_SIZE,data,num_chars);
 
     if(llwrite(app_layer.fileDescriptor,data_packet,packet_size)==-1)
-    return;
+    exit(1);
     bytes_to_read -= num_chars;
     i++;
 
