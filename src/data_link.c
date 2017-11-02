@@ -258,7 +258,7 @@ int llwrite(int fd,  char * packet, int length){
     if(read_packet(fd,response,&response_len)==0){
 
       if(valid_Sframe(response,response_len,RR)){
-        printf("RR%d\n",link_layer.sequenceNumber);
+        //printf("RR%d\n",link_layer.sequenceNumber);
         alarm(0);
         link_layer.sequenceNumber =!link_layer.sequenceNumber;
         return 0;
@@ -267,7 +267,7 @@ int llwrite(int fd,  char * packet, int length){
       }
 
       if(valid_Sframe(response,response_len,REJ)){
-        printf("REJ%d\n",link_layer.sequenceNumber);
+        //printf("REJ%d\n",link_layer.sequenceNumber);
         alarm(0);
         count=0;
         timedOut = true;
