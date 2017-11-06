@@ -101,7 +101,7 @@ int set_terminus(int fd){
     exit(-1);
   }
 
-  printf("New termios structure set\n");
+
 
   return 0;
 

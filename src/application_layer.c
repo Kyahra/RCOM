@@ -13,12 +13,10 @@ void set_connection(char * port, char * stat){
 
   if(strcmp(stat,"T")==0){
     app_layer.mode = TRANSMITTER;
-    printf("TRANSMITTER\n");
   }
 
   if(strcmp(stat,"R")== 0){
     app_layer.mode = RECEIVER;
-    printf("RECEIVER\n");
   }
 
   app_layer.fileDescriptor = llopen(app_layer.port,app_layer.mode);
