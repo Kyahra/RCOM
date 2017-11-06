@@ -1,7 +1,7 @@
 
 
 #include "application_layer.h"
-
+#include <sys/time.h>
 
 void set_connection(char * port, char * stat){
 
@@ -30,6 +30,8 @@ void set_connection(char * port, char * stat){
 }
 
 void send_data(char * path, char* filename){
+    struct timeval startTime,end_time;
+
   char *full_path =
   ( char *)malloc(sizeof(char) * (strlen(path) + 1 + strlen(filename)));
 
@@ -44,7 +46,15 @@ void send_data(char * path, char* filename){
   }
 
   send_control_packet(fd,filename, START_BYTE);
+  if (gettimeofday(&startTime, NULL) == -1) {
+      perror("appWrite - startup gettimeofday");
+  }
   send_packets(fd,filename);
+  if (gettimeofday(&end_time, NULL) == -1) {
+      perror("appWrite - startup gettimeofday");
+  }
+  double time_elapsed= startTime.tv_sec - end_time.tv_sec;
+  printf("time_elapsed:%f\n",time_elapsed);
   send_control_packet(fd,filename, END_BYTE);
 
 
