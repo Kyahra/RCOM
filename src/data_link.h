@@ -36,7 +36,7 @@ int llopen_transmitter(int fd);
 int llopen_receiver(int fd);
 
 int llread(int fd, unsigned char *packet);
-int llwrite(int fd,  char * packet, int length);
+int llwrite(int fd,  char * packet, int length, int * rej_counter);
 
 int llclose(int fd);
 int llclose_transmitter(int fd);

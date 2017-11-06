@@ -62,7 +62,7 @@ int llopen(int port,status mode){
 
   link_layer.sequenceNumber =0;
 
-  printf("llopen success!\n");
+
   return fd;
 
 }
@@ -233,7 +233,7 @@ int update_state(unsigned char c,int state,char * msg){
 
 }
 
-int llwrite(int fd,  char * packet, int length){
+int llwrite(int fd,  char * packet, int length,int * rej_counter){
 
   int frame_length;
   unsigned char *frame = create_Iframe(&frame_length, packet, length);
@@ -241,6 +241,7 @@ int llwrite(int fd,  char * packet, int length){
   count=0;
   unsigned char response[255];
   int response_len;
+
 
 
   do{
@@ -271,6 +272,7 @@ int llwrite(int fd,  char * packet, int length){
         alarm(0);
         count=0;
         timedOut = true;
+          (* rej_counter)++;
 
         }
       }

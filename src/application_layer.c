@@ -66,6 +66,8 @@ void send_packets(int fd, char* filename){
   char data[DATA_PACKET_SIZE];
   int i = 0;
   off_t bytes_to_read = file_size;
+  int rej_counter=0, rr_counter=0;
+  int num_packets=0;
 
   while(bytes_to_read>0){
     int num_chars=read(fd,data,DATA_PACKET_SIZE);
@@ -85,12 +87,21 @@ void send_packets(int fd, char* filename){
 
     memcpy(data_packet +PACKET_HEADER_SIZE,data,num_chars);
 
-    if(llwrite(app_layer.fileDescriptor,data_packet,packet_size)==-1)
+    if(llwrite(app_layer.fileDescriptor,data_packet,packet_size, &rej_counter)==-1){
     exit(1);
+}
+    else
+    rr_counter ++;
+
     bytes_to_read -= num_chars;
     i++;
-
+    num_packets++;
   }
+
+  printf ("number of packets:%d\n ", num_packets);
+  printf ("number of REJ's received:%d\n ", rej_counter);
+  printf ("number of RR's received:%d\n ", rr_counter);
+
 
 
 
@@ -103,6 +114,7 @@ void send_control_packet(int fd, char* filename,unsigned char control_byte){
 
   int filename_len = strlen(filename);
   off_t file_size = info.st_size;
+  int p;
 
 
   int start_packet_len = 5 + sizeof(info.st_size) + filename_len;
@@ -118,7 +130,7 @@ void send_control_packet(int fd, char* filename,unsigned char control_byte){
   start_packet[4 + sizeof(info.st_size)] = filename_len;
   strcat(start_packet + 5 + sizeof(info.st_size),filename);
 
-  llwrite(app_layer.fileDescriptor, start_packet, start_packet_len);
+  llwrite(app_layer.fileDescriptor, start_packet, start_packet_len, &p);
 
 }
 

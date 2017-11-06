@@ -17,6 +17,8 @@ int main(int argc, char** argv){
      exit(1);
    }
 
+
+
    init_link_layer(TIMEOUT,TRANSMISSIONS,BAUDRATE);
 
    set_connection(argv[1],argv[2]);
@@ -25,9 +27,15 @@ int main(int argc, char** argv){
    char filename[] = "pinguim.gif"  ;
 
    if(strcmp(argv[2],"T")==0){
+     printf("MODE: TRANSMITER\n");
     send_data(path,filename);
    }
-   else
+   else{
+        printf("MODE: RECEIVER\n");
     receive_data();
+}
+printf("Baud Rate: %d\n",BAUDRATE);
+printf("Packet Size: %d\n",PACKET_SIZE);
+
    return 0;
 }
