@@ -370,7 +370,7 @@ unsigned char *stuff_frame( char *packet, int *packet_len) {
 
 int llread(int fd, unsigned char *packet) {
 
-  unsigned char frame[MAX_SIZE];
+  unsigned char frame[PACKET_SIZE];
   unsigned char * reply;
   int frame_length;
   int packet_length;

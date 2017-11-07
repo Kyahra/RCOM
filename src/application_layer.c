@@ -93,8 +93,8 @@ void send_packets(int fd, char* filename){
 
     data_packet[0] = DATA_BYTE;
     data_packet[1] = i % 256;
-    data_packet[2] = 0;
-    data_packet[3] = num_chars;
+    data_packet[2] = num_chars/256;
+    data_packet[3] = num_chars%256;
 
     memcpy(data_packet +PACKET_HEADER_SIZE,data,num_chars);
 
