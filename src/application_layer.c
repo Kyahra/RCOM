@@ -28,8 +28,13 @@ void set_connection(char * port, char * stat){
 
 
 }
+double getElapsedTimeSecs(struct timespec* start, struct timespec* end){
+  return (end->tv_sec + end->tv_nsec/1000000000) - (start->tv_sec + start->tv_nsec/1000000000);
+}
 
 void send_data(char * path, char* filename){
+    struct timespec start, end;
+
 
 /*Do something*/
 
@@ -48,10 +53,10 @@ void send_data(char * path, char* filename){
   }
 
   send_control_packet(fd,filename, START_BYTE);
-  clock_t start = clock();
+  clock_gettime(CLOCK_REALTIME, &start);
   send_packets(fd,filename);
-clock_t end = clock();
-float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+clock_gettime(CLOCK_REALTIME, &end);
+double seconds = getElapsedTimeSecs(&start,&end);
   printf("time_elapsed:%f\n",seconds);
   send_control_packet(fd,filename, END_BYTE);
 
