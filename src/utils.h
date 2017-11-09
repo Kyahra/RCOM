@@ -37,7 +37,7 @@
 #define REJ 0x01
 
 #define S_FRAME_LENGTH 5
-#define TIME_WAIT 10  //in miliseconds
+#define TIME_WAIT 300  //in miliseconds
 
 
 
