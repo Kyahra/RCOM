@@ -255,7 +255,7 @@ int llwrite(int fd,  char * packet, int length,int * rej_counter){
     alarm(link_layer.timeout);
 
     while(!timedOut){
-
+        usleep(TIME_WAIT*1000); 
     if(read_packet(fd,response,&response_len)==0){
 
       if(valid_Sframe(response,response_len,RR)){
@@ -306,6 +306,7 @@ int write_packet(int fd, unsigned char * buffer,int buf_length){
   int chars = 0;
 
   while (total_chars < buf_length) {
+    usleep(TIME_WAIT*1000);
     chars = write(fd, buffer, buf_length);
 
     if( chars <= 0) {
