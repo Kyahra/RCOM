@@ -19,11 +19,12 @@ typedef struct {
   unsigned int numTransmissions; /*Número de tentativas em caso defalha*/
   status mode; /* RECEIVER || TRANSMITTER */
   struct termios portSettings;
+  int wrongPackets;
 }linkLayer;
 
 linkLayer link_layer;
 
-
+void set_wrong_packets(int numPackets);
 
 void init_link_layer(int timeout,int numTransmissions, int baudRate);
 

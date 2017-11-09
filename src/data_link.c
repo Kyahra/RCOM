@@ -13,11 +13,17 @@ void alarmHandler(int sig){
   count ++;
 }
 
+
+void set_wrong_packets(int numPackets){
+  link_layer.wrongPackets = numPackets * FER;
+}
+
 void init_link_layer(int timeout,int numTransmissions, int baudRate){
 
   link_layer.timeout = timeout;
   link_layer.numTransmissions = numTransmissions;
   link_layer.baudRate = baudRate;
+  link_layer.wrongPackets = 0;
 
 }
 
@@ -255,7 +261,7 @@ int llwrite(int fd,  char * packet, int length,int * rej_counter){
     alarm(link_layer.timeout);
 
     while(!timedOut){
-        usleep(TIME_WAIT*1000); 
+        usleep(TIME_WAIT*1000);
     if(read_packet(fd,response,&response_len)==0){
 
       if(valid_Sframe(response,response_len,RR)){
@@ -349,6 +355,11 @@ unsigned char *stuff_frame( char *packet, int *packet_len) {
 
   for (i = 0; i < *packet_len; i++)
   bcc2 ^= packet[i];
+
+  if(link_layer.wrongPackets >0){
+    bcc2 =0;
+    link_layer.wrongPackets--;
+  }
 
   packet[*packet_len]=bcc2;
   *packet_len = *packet_len +1;

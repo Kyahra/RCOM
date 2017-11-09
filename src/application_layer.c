@@ -53,8 +53,8 @@ void send_data(char * path, char* filename){
   send_control_packet(fd,filename, START_BYTE);
   clock_gettime(CLOCK_REALTIME, &start);
   send_packets(fd,filename);
-clock_gettime(CLOCK_REALTIME, &end);
-double seconds = getElapsedTimeSecs(&start,&end);
+  clock_gettime(CLOCK_REALTIME, &end);
+  double seconds = getElapsedTimeSecs(&start,&end);
   printf("time_elapsed:%f\n",seconds);
   send_control_packet(fd,filename, END_BYTE);
 
@@ -77,6 +77,8 @@ void send_packets(int fd, char* filename){
   off_t bytes_to_read = file_size;
   int rej_counter=0, rr_counter=0;
   int num_packets=0;
+
+  set_wrong_packets(file_size/DATA_PACKET_SIZE);
 
   while(bytes_to_read>0){
     int num_chars=read(fd,data,DATA_PACKET_SIZE);

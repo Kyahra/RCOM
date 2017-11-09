@@ -39,7 +39,6 @@
 #define S_FRAME_LENGTH 5
 #define TIME_WAIT 300  //in miliseconds
 
-
-
+#define FER 0.1
 
 typedef enum { TRANSMITTER, RECEIVER } status;
