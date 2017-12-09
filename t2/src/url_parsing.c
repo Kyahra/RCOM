@@ -15,7 +15,7 @@ int userPassword(url * info_struct, char * complete_url){
   info_struct->user[password-first_slash]=0;
   password++; //the password pointer was poiting to ":" and it has to point to the first character of the userPassword
   memcpy(info_struct->password,password,at - password);
-  info->password[at_position-password] = 0; //string end character
+  info_struct->password[at_position-password] = 0; //string end character
   return 0;
 }
 
@@ -30,8 +30,8 @@ int parse_url(char complete_url[],url * info_struct){
   char * at = strrchr(complete_url, '@');
 
   if(at==NULL){
-    memcpy(info->user, "anonymous", strlen("anonymous") + 1);
-    memcpy(info->password, "anonymous", strlen("anonymous") + 1);
+    memcpy(info_struct->user, "anonymous", strlen("anonymous") + 1);
+    memcpy(info_struct->password, "anonymous", strlen("anonymous") + 1);
   }
   else{
     if(userPassword(info_struct,complete_url)!=0)
@@ -60,14 +60,14 @@ int parse_url(char complete_url[],url * info_struct){
 int getIp(url* info_struct) {
 	struct hostent* h;
 
-	if ((h = gethostbyname(url->host)) == NULL) {
+	if ((h = gethostbyname(info_struct->host)) == NULL) {
 		herror("gethostbyname");
 		return 1;
 	}
 
 
 	char* ip = inet_ntoa(*((struct in_addr *) h->h_addr));
-	strcpy(url->ip, ip);
+	strcpy(info_struct->ip, ip);
 
 	return 0;
 }
