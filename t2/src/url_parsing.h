@@ -18,5 +18,10 @@ typedef struct{
   char * user;
   char * password;
   char * host;
-  char * url_path;
+  char * file_path;
+  char * file_name;
 } url;
+
+
+int userPassword(url * info_struct, char * complete_url);
+int parse_url(char complete_url[],url * info_struct);
