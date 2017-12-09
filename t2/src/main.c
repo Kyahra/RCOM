@@ -13,7 +13,7 @@ int main(int argc, char** argv){
     exit(1);
   }
 
-  url_info info;
+  url info;
   if(parse_url(argv[1], &info) != 0){
     fprintf(stderr, "Invalid URL\n");
     exit(1);
