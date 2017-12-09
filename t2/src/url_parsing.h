@@ -27,3 +27,4 @@ typedef struct{
 
 int userPassword(url * info_struct, char * complete_url);
 int parse_url(char complete_url[],url * info_struct);
+int getIp(url* info_struct);
