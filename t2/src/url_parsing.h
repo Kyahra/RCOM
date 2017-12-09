@@ -15,13 +15,12 @@
 
 
 typedef struct{
-  char * type;
-  char * user;
-  char * password;
-  char * host;
-  char * file_path;
-  char * file_name;
-  char * ip;
+  char  user[256];
+  char  password[256];
+  char  host[256];
+  char  file_path[256];
+  char  file_name[256];
+  char  ip[256];
 } url;
 
 
