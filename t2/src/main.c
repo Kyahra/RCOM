@@ -19,5 +19,13 @@ int main(int argc, char** argv){
     exit(1);
   }
 
+  printf("user:%s\n", info->user);
+  printf("pass:%s\n", info->password);
+  printf("ip:%s\n", info->ip);
+  printf("path:%s\n", info->file_path);
+  printf("file_name:%s\n", info->file_name);
+  printf("host:%s\n", info->host);
+
+
 return 0;
 }
