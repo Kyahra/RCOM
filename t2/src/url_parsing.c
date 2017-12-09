@@ -11,8 +11,8 @@ int userPassword(url * info_struct, char * complete_url){
     fprintf(stderr, "Your link must contain a ':' separating the username and password!'\n");
     return 1;
   }
-  memcpy(info_struct->user, slash, password - slash); //password - slash it's the size of username in bytes
-  info_struct->user[password-slash]=0;
+  memcpy(info_struct->user, first_slash, password - first_slash); //password - slash it's the size of username in bytes
+  info_struct->user[password-first_slash]=0;
   password++; //the password pointer was poiting to ":" and it has to point to the first character of the userPassword
   memcpy(info_struct->password,password,at - password);
   info->password[at_position-password] = 0; //string end character
@@ -51,7 +51,23 @@ int parse_url(char complete_url[],url * info_struct){
 
   memcpy(info_struct->file_name, last_slash, strlen(last_slash) + 1);
 
+  getIp(info_struct);
+
   return 0;
+}
 
 
+int getIp(url* info_struct) {
+	struct hostent* h;
+
+	if ((h = gethostbyname(url->host)) == NULL) {
+		herror("gethostbyname");
+		return 1;
+	}
+
+
+	char* ip = inet_ntoa(*((struct in_addr *) h->h_addr));
+	strcpy(url->ip, ip);
+
+	return 0;
 }
