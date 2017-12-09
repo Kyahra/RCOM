@@ -1,6 +1,6 @@
 #include "TPC.h"
 
-int initConnection(ftp ftp,char * ip_adress,int port, int type){
+int initConnection(ftp * ftp,char * ip_adress,int port, int type){
 
 	struct	sockaddr_in server_addr;
 
@@ -13,23 +13,23 @@ int initConnection(ftp ftp,char * ip_adress,int port, int type){
 	/*open an TCP socket*/
 
   if(type ==1){
-	if ((ftp.ctrl_socket_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
+	if ((ftp->ctrl_socket_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
     		perror("socket()");
         	exit(0);
     	}
 	/*connect to the server*/
-    	if(connect(ftp.ctrl_socket_fd,
+    	if(connect(ftp->ctrl_socket_fd,
 	           (struct sockaddr *)&server_addr,
 		   sizeof(server_addr)) < 0){
         	perror("connect()");
 
     }else{
-      if ((ftp.ctrl_socket_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
+      if ((ftp->data_socket_fd = socket(AF_INET,SOCK_STREAM,0)) < 0) {
             perror("socket()");
               exit(0);
           }
       /*connect to the server*/
-          if(connect(ftp.socketfd,
+          if(connect(ftp->data_socket_fd,
                  (struct sockaddr *)&server_addr,
            sizeof(server_addr)) < 0){
               perror("connect()");
