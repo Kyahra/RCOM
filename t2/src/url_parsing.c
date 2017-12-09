@@ -15,7 +15,7 @@ int userPassword(url * info_struct, char * complete_url){
   info_struct->user[password-first_slash]=0;
   password++; //the password pointer was poiting to ":" and it has to point to the first character of the userPassword
   memcpy(info_struct->password,password,at - password);
-  info_struct->password[at_position-password] = 0; //string end character
+  info_struct->password[at-password] = 0; //string end character
   return 0;
 }
 
@@ -40,7 +40,7 @@ int parse_url(char complete_url[],url * info_struct){
   }
 
   char* slash_after_host = strchr(at, '/');
-  memcpy(info_struct->host, at_position, slash_after_host-at);
+  memcpy(info_struct->host, at, slash_after_host-at);
   info_struct->host[slash_after_host-at] = 0;
 
 
