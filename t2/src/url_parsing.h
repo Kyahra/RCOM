@@ -13,6 +13,7 @@
 #include <fcntl.h>
 
 
+
 typedef struct{
   char * type;
   char * user;
@@ -20,6 +21,7 @@ typedef struct{
   char * host;
   char * file_path;
   char * file_name;
+  char * ip;
 } url;
 
 
