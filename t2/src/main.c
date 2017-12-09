@@ -5,7 +5,7 @@
 #include <netdb.h>
 #include <string.h>
 
-#include "url_parsing.h"
+#include "url_parsing.c"
 int main(int argc, char** argv){
 
   if(argc != 2){
