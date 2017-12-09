@@ -20,9 +20,7 @@ int userPassword(url * info_struct, char * complete_url){
 }
 
 int parse_url(char complete_url[],url * info_struct){
-  char * ftp;
-  strcpy(ftp,"ftp://");
-  if(strncmp(complete_url, ftp, strlen(ftp)) != 0){
+  if(strncmp(complete_url, "ftp://", strlen("ftp://")) != 0){
     fprintf(stderr, "The link does not begin with 'ftp://'\n");
     return 1;
   }
