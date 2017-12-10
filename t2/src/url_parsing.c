@@ -23,23 +23,34 @@ int parse_url(char complete_url[],url * info_struct){
   if(strncmp(complete_url, "ftp://", strlen("ftp://")) != 0){
     fprintf(stderr, "The link does not begin with 'ftp://'\n");
     return 1;
-  }
+}
 
-  char * at = strrchr(complete_url, '@');
+  char* slash_after_host;
 
-  if(at==NULL){
+  if(!strchr(complete_url, '@')){
     memcpy(info_struct->user, "anonymous", strlen("anonymous") + 1);
     memcpy(info_struct->password, "anonymous", strlen("anonymous") + 1);
+
+    char * s1 = strchr(complete_url,'/');
+    s1++;
+    s1++;
+
+    slash_after_host = strchr(s1, '/');
+    memcpy(info_struct->host, s1, slash_after_host-s1);
+    info_struct->host[slash_after_host-s1] = 0;
   }
   else{
     if(userPassword(info_struct,complete_url)!=0)
-    return 1;
-    at++; // it was pointing to at now it's pointing to the next element
-  }
+      return 1;
 
-  char* slash_after_host = strchr(at, '/');
-  memcpy(info_struct->host, at, slash_after_host-at);
-  info_struct->host[slash_after_host-at] = 0;
+      char * at = strrchr(complete_url, '@');
+      at++;
+
+      slash_after_host = strchr(at, '/');
+      memcpy(info_struct->host, at, slash_after_host-at);
+      info_struct->host[slash_after_host-at] = 0;
+
+  }
 
 
   char* last_slash = strrchr(complete_url, '/');

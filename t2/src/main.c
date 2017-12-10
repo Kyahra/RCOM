@@ -44,6 +44,7 @@ int main(int argc, char** argv){
   int port;
 
   passiveMode(ftp, ip_address, &port);
+  
   if ((ftp.data_socket_fd = initSocket(ip_address,port))<0){
     fprintf(stderr, "Error opening data connection\n");
     exit(1);
@@ -54,5 +55,5 @@ int main(int argc, char** argv){
   endConnection(ftp);
 
   return 0;
-  
+
   }
