@@ -8,6 +8,8 @@
 #include "url_parsing.h"
 #include "TCP.h"
 
+#define PORT 21
+
 int main(int argc, char** argv){
 
   if(argc != 2){
@@ -16,6 +18,7 @@ int main(int argc, char** argv){
   }
 
   url url;
+  ftp ftp;
 
   if(parse_url(argv[1], &url) != 0){
     fprintf(stderr, "Invalid URL\n");
@@ -28,28 +31,28 @@ int main(int argc, char** argv){
   printf("path:%s\n", url.file_path);
   printf("file_name:%s\n", url.file_name);
   printf("host:%s\n", url.host);
+  printf("\n\n");
 
+  if(initConnection(&ftp,url.ip,PORT) !=0){
+    fprintf(stderr, "Error opening control connection\n");
+    exit(1);
+  }
 
+  login(ftp,url);
 
-    int control_socket_fd;
-    if((control_socket_fd = create_connection(url.ip, CLIENT_CONNECTION_PORT)) == 0){
-      fprintf(stderr, "Error opening control connection\n");
-      exit(1);
-    }
+  char ip_address[MAX_SIZE];
+  int port;
 
-    login(control_socket_fd, &url);
-    char data_address[MAX_STRING_SIZE];
-    int port;
-    enter_passive_mode(control_socket_fd, data_address, &port);
+  passiveMode(ftp, ip_address, &port);
+  if ((ftp.data_socket_fd = initSocket(ip_address,port))<0){
+    fprintf(stderr, "Error opening data connection\n");
+    exit(1);
+  }
 
-    int data_socket_fd;
-    if((data_socket_fd = create_connection(data_address, port)) == 0){
-      fprintf(stderr, "Error opening data connection\n");
-      exit(1);
-    }
-    send_retrieve(control_socket_fd, &url);
-    download_file(data_socket_fd, &url);
-    close_connection(control_socket_fd, data_socket_fd);
+  retrieve(ftp,url);
+  download(ftp,url);
+  endConnection(ftp);
 
-    return 0;
+  return 0;
+  
   }

@@ -2,18 +2,26 @@
 #define TCP_H
 #include "url_parsing.h"
 
-#define CLIENT_CONNECTION_PORT 21
-#define MAX_STRING_SIZE 512
 
-int create_connection(char* address, int port);
+#define MAX_SIZE 516
 
-void login(int control_socket_fd, url* info);
+typedef struct
+{
+    int ctrl_socket_fd; // file descriptor to control socket
+    int data_socket_fd; // file descriptor to data socket
+} ftp;
 
-void enter_passive_mode(int sockfd, char* ip, int* port);
+int initConnection(ftp* ftp,char* address, int port);
+int endConnection(ftp ftp);
 
-void send_retrieve(int control_socket_fd, url* info);
+int initSocket(char* ip_address,int port);
+int socketRead(int socketfd, char* repply);
+int socketWrite(int socketfd, char* cmd);
 
-int download_file(int data_socket_fd, url* info);
+void login(ftp ftp, url url);
+void passiveMode(ftp ftp, char* ip_adress, int* port);
+void retrieve(ftp ftp, url url);
+int download(ftp ftp, url url);
 
-int close_connection(int control_socket_fd, int data_socket_fd);
+
 #endif
