@@ -1,3 +1,5 @@
+#ifndef URL_PARSING_H
+#define URL_PARSING_H
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -27,3 +29,4 @@ typedef struct{
 int userPassword(url * info_struct, char * complete_url);
 int parse_url(char complete_url[],url * info_struct);
 int getIp(url* info_struct);
+#endif

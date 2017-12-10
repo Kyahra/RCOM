@@ -1,31 +1,19 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <netdb.h>
-#include <strings.h>
+#ifndef TCP_H
+#define TCP_H
+#include "url_parsing.h"
 
-#define PORT 21
-#define MAX_STRING_SIZE 516
+#define CLIENT_CONNECTION_PORT 21
+#define MAX_STRING_SIZE 512
 
-typedef struct{
-  int ctrl_socket_fd;
-  int data_socket_fd;
-} ftp;
+int create_connection(char* address, int port);
 
+void login(int control_socket_fd, url* info);
 
-int initConnection(char * ip_adress,int port);
-int endConnection(ftp ftp);
+void enter_passive_mode(int sockfd, char* ip, int* port);
 
-int login(ftp ftp, url url);
+void send_retrieve(int control_socket_fd, url* info);
 
-int socketRead(int socketfd, char* str);
-int socketWrite(int socketfd, char* cmd);
+int download_file(int data_socket_fd, url* info);
 
-int activatePassiveMode(ftp ftp,char* ip_adress,int* port);
-void retrive(ftp ftp, url url);
-int endConnection(ftp ftp);
+int close_connection(int control_socket_fd, int data_socket_fd);
+#endif
