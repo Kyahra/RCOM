@@ -168,7 +168,7 @@ int endConnection(ftp ftp){
   socketWrite(ftp.ctrl_socket_fd,"QUIT\r\n");
 
   if(socketRead(ftp.ctrl_socket_fd,NULL) != 0){
-    fprintf(stderr, "Error closing connection. Exiting anyway...\n");
+    fprintf(stderr, "Error closing connection. Closing...\n");
     close(ftp.data_socket_fd);
     close(ftp.ctrl_socket_fd);
     exit(1);
@@ -177,7 +177,7 @@ int endConnection(ftp ftp){
   close(ftp.data_socket_fd);
   close(ftp.ctrl_socket_fd);
 
-  printf("Goodbye!\n");
+  printf("Ending conection! Come back soon\n");
 
   return 0;
 }
